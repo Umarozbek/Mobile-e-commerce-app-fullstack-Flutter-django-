@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Release: Asosiy API HTTPS (million-halal-mart-3.onrender.com).
+  Refresh token URL hozircha HTTP (209.38.109.22) bo'lgani uchun
+  faqat shu host uchun cleartext ruxsat etiladi.
+  Kelajakda refresh token serverini HTTPS ga o'tkazish tavsiya etiladi.
+-->
+<network-security-config>
+    <base-config cleartextTrafficPermitted="false">
+        <trust-anchors>
+            <certificates src="system" />
+            <certificates src="user" />
+        </trust-anchors>
+    </base-config>
+    <domain-config cleartextTrafficPermitted="true">
+        <domain includeSubdomains="true">209.38.109.22</domain>
+        <domain includeSubdomains="true">localhost</domain>
+        <domain includeSubdomains="true">10.0.2.2</domain>
+        <domain includeSubdomains="true">127.0.0.1</domain>
+    </domain-config>
+</network-security-config>

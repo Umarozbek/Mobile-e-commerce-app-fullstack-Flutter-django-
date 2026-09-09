@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "677218402440",
+    "project_id": "millionmart-3d6ba",
+    "storage_bucket": "millionmart-3d6ba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:677218402440:android:15b03679094dcbace45f3d",
+        "android_client_info": {
+          "package_name": "million.halal.mart"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCV-tn-5vpARo-Xel4TXtLBikL3UtZGIfk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
