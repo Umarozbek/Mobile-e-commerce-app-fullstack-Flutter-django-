@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Telegram xabarnomalari</h1>
+        <p>Buyurtma haqida xabar yuboriladigan Telegram bot sozlamalari</p>
+    </div>
+    <a href="{% url 'push-compose' %}" class="btn btn-outline-primary rounded-pill px-4">
+        <i class="bi bi-send me-1"></i> Push xabar yozish
+    </a>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="mm-card h-100">
+            <div class="mm-card__header">
+                <div>
+                    <h5 class="mm-card__title"><i class="bi bi-telegram me-1"></i> Telegram xabarnoma</h5>
+                    <div class="mm-card__subtitle">Bot Token va xabar yuboriladigan chat ID'lar</div>
+                </div>
+            </div>
+            <div class="mm-card__body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.bot_token.label }}</label>
+                        {{ form.bot_token }}
+                        <div class="form-text">{{ form.bot_token.help_text }}</div>
+                        {% if has_token %}
+                        <div class="small text-success mt-1"><i class="bi bi-check-circle-fill"></i> Token saqlangan</div>
+                        {% else %}
+                        <div class="small text-muted mt-1"><i class="bi bi-exclamation-circle"></i> Hali token saqlanmagan</div>
+                        {% endif %}
+                        {% for error in form.bot_token.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.chat_ids.label }}</label>
+                        {{ form.chat_ids }}
+                        <div class="form-text">Har bir qatorda bitta chat ID yoki kanal @username.</div>
+                        {% for error in form.chat_ids.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check2 me-1"></i> Saqlash
+                    </button>
+                </form>
+
+                <hr class="my-4">
+
+                <form method="post" action="{% url 'telegram-test' %}"
+                      onsubmit="return confirm('Barcha saqlangan chat ID\'larga sinov xabari yuborilsinmi?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-secondary rounded-pill px-4">
+                        <i class="bi bi-send-check me-1"></i> Test
+                    </button>
+                    <span class="small text-muted ms-2">Har bir chat ID'ga alohida sinov xabari yuboradi</span>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="mm-card h-100">
+            <div class="mm-card__header">
+                <div>
+                    <h5 class="mm-card__title"><i class="bi bi-toggle2-on me-1"></i> Admin botga tugmalar</h5>
+                    <div class="mm-card__subtitle">Buyurtma xabariga ✅ Tasdiqlash / ❌ Rad etish tugmalarini qo'shish</div>
+                </div>
+            </div>
+            <div class="mm-card__body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span>Holati:</span>
+                    {% if settings_obj.buttons_enabled %}
+                    <span class="mm-pill mm-pill--success">Yoqilgan</span>
+                    {% else %}
+                    <span class="mm-pill mm-pill--neutral">O'chirilgan</span>
+                    {% endif %}
+                </div>
+
+                <p class="small text-muted">
+                    Yoqilgan bo'lsa, har bir yangi buyurtma xabariga inline tugmalar biriktiriladi.
+                    Admin Telegram'da to'g'ridan-to'g'ri tugmani bosib buyurtmani tasdiqlashi yoki rad etishi mumkin -
+                    natija darhol bazaga yoziladi va mijozga push xabar yuboriladi.
+                </p>
+
+                {% if not has_token %}
+                <div class="alert alert-warning small">
+                    <i class="bi bi-exclamation-triangle me-1"></i>
+                    Tugmalarni yoqishdan oldin chapdagi formadan Bot Token'ni saqlang.
+                </div>
+                {% endif %}
+
+                <form method="post" action="{% url 'telegram-toggle-buttons' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn {% if settings_obj.buttons_enabled %}btn-outline-danger{% else %}btn-success{% endif %} rounded-pill px-4"
+                            {% if not has_token and not settings_obj.buttons_enabled %}disabled{% endif %}>
+                        {% if settings_obj.buttons_enabled %}O'chirish{% else %}Yoqish{% endif %}
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

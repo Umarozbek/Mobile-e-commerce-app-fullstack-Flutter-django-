@@ -1,0 +1,275 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<style>
+    :root {
+        --primary-blue: #4154f1;
+        --dark-blue: #012970;
+        --soft-bg: #f6f9ff;
+        --border-color: #dee2e6;
+        --success-green: #2eca6a;
+    }
+
+    .main { background-color: var(--soft-bg); }
+
+    /* Card dizayni */
+    .section-card {
+        background: #ffffff;
+        border: none;
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 25px;
+        box-shadow: 0px 5px 20px rgba(1, 41, 112, 0.05);
+        border-top: 4px solid var(--primary-blue);
+        transition: transform 0.3s;
+    }
+
+    .section-title {
+        color: var(--dark-blue);
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 25px;
+        display: flex;
+        align-items: center;
+        border-bottom: 1px solid #f0f4f8;
+        padding-bottom: 15px;
+    }
+
+    .section-title i {
+        margin-right: 12px;
+        font-size: 1.4rem;
+        background: var(--soft-bg);
+        padding: 8px;
+        border-radius: 10px;
+        color: var(--primary-blue);
+    }
+
+    /* Input va Textarea dizayni */
+    .custom-input, .form-control, .form-select {
+        border: 2px solid #e0e6ed !important;
+        border-radius: 12px !important;
+        padding: 12px 15px !important;
+        font-size: 0.95rem !important;
+        transition: all 0.3s ease !important;
+        background-color: #fdfdff !important;
+        color: #333 !important;
+        font-weight: 500 !important;
+    }
+
+    .custom-input:focus, .form-control:focus {
+        border-color: var(--primary-blue) !important;
+        background-color: #fff !important;
+        box-shadow: 0 0 15px rgba(65, 84, 241, 0.1) !important;
+        outline: none !important;
+    }
+
+    .form-label {
+        font-weight: 700 !important;
+        color: #444 !important;
+        margin-bottom: 8px !important;
+        font-size: 0.8rem !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    /* Narxlar bloki */
+    .price-gradient-box {
+        background: linear-gradient(135deg, #fdfdff 0%, #f0f4ff 100%);
+        border: 1px solid rgba(65, 84, 241, 0.1);
+        padding: 20px;
+        border-radius: 15px;
+        margin-bottom: 20px;
+    }
+
+    /* Rasm yuklash maydoni */
+    .upload-zone {
+        border: 2px dashed #cbd5e0;
+        border-radius: 15px;
+        padding: 40px;
+        background: #f8faff;
+        text-align: center;
+        transition: 0.3s;
+        cursor: pointer;
+        position: relative;
+    }
+
+    .upload-zone:hover {
+        border-color: var(--primary-blue);
+        background: #f0f4ff;
+    }
+
+    .preview-img {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 12px;
+        border: 2px solid var(--primary-blue);
+        margin: 5px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        animation: fadeIn 0.5s ease;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Saqlash tugmasi */
+    .btn-save {
+        background: var(--primary-blue);
+        color: white;
+        border-radius: 12px;
+        padding: 15px;
+        font-weight: 800;
+        font-size: 1.1rem;
+        border: none;
+        box-shadow: 0 10px 20px rgba(65, 84, 241, 0.2);
+        transition: 0.3s;
+    }
+
+    .btn-save:hover {
+        background: #3644cc;
+        transform: translateY(-3px);
+        box-shadow: 0 15px 25px rgba(65, 84, 241, 0.3);
+        color: white;
+    }
+
+    .form-check-input { width: 1.5em; height: 1.5em; cursor: pointer; }
+    .form-check-label { cursor: pointer; font-weight: 600; margin-left: 10px; }
+
+</style>
+
+<div class="container-fluid px-lg-4">
+    <div class="pagetitle mb-4">
+        <h1 class="fw-bold text-dark">Yangi mahsulot yaratish</h1>
+        <nav>
+            <ol class="breadcrumb">
+                <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+                <li class="breadcrumb-item">Mahsulotlar</li>
+                <li class="breadcrumb-item active">Yaratish</li>
+            </ol>
+        </nav>
+    </div>
+
+    {% if form.errors %}
+    <div class="alert alert-danger rounded-4 shadow-sm mb-4 border-0">
+        <div class="d-flex align-items-center">
+            <i class="bi bi-exclamation-octagon-fill fs-4 me-3"></i>
+            <strong>Iltimos, xatolarni tuzating!</strong>
+        </div>
+        <ul class="mt-2 mb-0 small">
+            {% for field in form %}{% for error in field.errors %}<li>{{ field.label }}: {{ error }}</li>{% endfor %}{% endfor %}
+        </ul>
+    </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data" id="main-form">
+        {% csrf_token %}
+        <div class="row g-4">
+
+            <!-- CHAP TOMON -->
+            <div class="col-lg-7">
+                <div class="section-card">
+                    <h5 class="section-title"><i class="bi bi-translate"></i>Nomlar va tillar</h5>
+                    <div class="row g-3">
+                        <div class="col-md-12"><label class="form-label">Tizimdagi nomi (Internal)</label>{{ form.name }}</div>
+                        <div class="col-md-6"><label class="form-label text-dark">Nomi (UZB)</label>{{ form.name_uz }}</div>
+                        <div class="col-md-6"><label class="form-label text-dark">Nomi (RUS)</label>{{ form.name_ru }}</div>
+                        <div class="col-md-6"><label class="form-label text-primary">Nomi (ENG)</label>{{ form.name_en }}</div>
+                        <div class="col-md-6"><label class="form-label text-danger">Nomi (KOR)</label>{{ form.name_ko }}</div>
+                    </div>
+
+                    <hr class="my-5" style="opacity: 0.1;">
+
+                    <h5 class="section-title"><i class="bi bi-card-text"></i>Mahsulot tavsiflari</h5>
+                    <div class="mb-4"><label class="form-label">Tavsif (UZB)</label>{{ form.desc_uz }}</div>
+                    <div class="mb-4"><label class="form-label">Tavsif (RUS)</label>{{ form.desc_ru }}</div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label">Tavsif (ENG)</label>{{ form.desc_en }}</div>
+                        <div class="col-md-6"><label class="form-label text-danger">Tavsif (KOR)</label>{{ form.desc_ko }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- O'NG TOMON -->
+            <div class="col-lg-5">
+                <div class="section-card">
+                    <h5 class="section-title"><i class="bi bi-cash-coin"></i>Narx va Logistika</h5>
+                    <div class="mb-4"><label class="form-label">Kategoriyani tanlang</label>{{ form.category }}</div>
+
+                    <div class="price-gradient-box shadow-none">
+                        <div class="mb-3"><label class="form-label text-primary">Sotuv Narxi (₩)</label>{{ form.new_price }}</div>
+                        <div class="mb-3"><label class="form-label text-danger">Eski Narx (₩)</label>{{ form.discount_price }}</div>
+                        <div class="mb-0"><label class="form-label text-success">B2B Narxi (₩)</label>{{ form.b2b_price }}</div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-4"><label class="form-label">Ombor</label>{{ form.available_quantity }}</div>
+                        <div class="col-4"><label class="form-label">Vazni</label>{{ form.weight }}</div>
+                        <div class="col-4"><label class="form-label">Birligi</label>{{ form.measure }}</div>
+                    </div>
+                    <div class="mt-4"><label class="form-label">Tarkibi (Ingredients)</label>{{ form.ingredients }}</div>
+                </div>
+
+                <div class="section-card" style="border-top-color: var(--success-green);">
+                    <h5 class="section-title" style="color: var(--success-green);"><i class="bi bi-shield-check" style="color: var(--success-green);"></i>Holati</h5>
+                    <div class="form-check form-switch mb-3 p-0 ps-5 d-flex align-items-center">
+                        {{ form.active }}
+                        <label class="form-check-label ms-2">Sotuvda faol (Active)</label>
+                    </div>
+                    <div class="form-check form-switch p-0 ps-5 d-flex align-items-center">
+                        {{ form.main }}
+                        <label class="form-check-label ms-2">Asosiy sahifada ko'rinsin</label>
+                    </div>
+                </div>
+
+                <div class="section-card" style="border-top-color: #ff771d;">
+                    <h5 class="section-title" style="color: #ff771d;"><i class="bi bi-images" style="color: #ff771d;"></i>Mahsulot rasmlari</h5>
+                    <div id="image-preview-container" class="d-flex flex-wrap justify-content-center mb-3"></div>
+
+                    <div class="upload-zone">
+                        <i class="bi bi-cloud-arrow-up fs-1 text-primary"></i>
+                        <input type="file" name="image" id="id_image" class="form-control mt-3" multiple required style="opacity: 1;">
+                        <p class="small text-muted mt-2 mb-0">Ctrl bosib bir nechta rasm tanlang.</p>
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-save w-100 mb-3 shadow">
+                        <i class="bi bi-check-circle-fill me-2"></i>MAHSULOTNI SAQLASH
+                    </button>
+                    <button type="button" class="btn btn-light w-100 rounded-pill border fw-bold text-muted py-3" onclick="history.back()">
+                        Bekor qilish
+                    </a>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const imageInput = document.getElementById('id_image');
+        const previewContainer = document.getElementById('image-preview-container');
+
+        if (imageInput) {
+            imageInput.addEventListener('change', function () {
+                previewContainer.innerHTML = '';
+                const files = Array.from(this.files);
+
+                files.forEach(file => {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        const img = document.createElement('img');
+                        img.src = e.target.result;
+                        img.className = 'preview-img';
+                        previewContainer.appendChild(img);
+                    };
+                    reader.readAsDataURL(file);
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

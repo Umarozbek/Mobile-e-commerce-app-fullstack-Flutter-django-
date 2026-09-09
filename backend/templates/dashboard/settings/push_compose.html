@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Push xabar yozish</h1>
+        <p>Barcha faol qurilmalarga (DeviceToken) bir martalik xabarnoma yuborish</p>
+    </div>
+    <a href="{% url 'telegram-settings' %}" class="btn btn-outline-secondary rounded-pill px-4">
+        <i class="bi bi-arrow-left me-1"></i> Orqaga
+    </a>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-7">
+        <div class="mm-card">
+            <div class="mm-card__body">
+                <p class="text-muted small mb-4">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Bu forma barcha faol foydalanuvchi qurilmalariga (broadcast) push yuboradi.
+                    Yuborilgan xabar shu bilan birga bildirishnoma (News) sifatida ham saqlanadi va
+                    mobil ilovaning bildirishnomalar ro'yxatida ham ko'rinadi.
+                </p>
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.body.label }}</label>
+                        {{ form.body }}
+                        {% for error in form.body.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.image.label }}</label>
+                        {{ form.image }}
+                        <div class="form-text">Push xabarida va bildirishnomalar ro'yxatida ko'rsatiladi.</div>
+                        {% for error in form.image.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">{{ form.type.label }}</label>
+                            {{ form.type }}
+                            {% for error in form.type.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">{{ form.priority.label }}</label>
+                            {{ form.priority }}
+                            {% for error in form.priority.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{{ form.link.label }}</label>
+                        {{ form.link }}
+                        <div class="form-text">Masalan ichki route (<code>/sale</code>) yoki to'liq havola.</div>
+                        {% for error in form.link.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4"
+                            onclick="return confirm('Barcha faol foydalanuvchilarga push yuborilsinmi?');">
+                        <i class="bi bi-send me-1"></i> Yuborish
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

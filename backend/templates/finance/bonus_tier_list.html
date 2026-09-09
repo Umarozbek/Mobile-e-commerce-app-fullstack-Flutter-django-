@@ -1,0 +1,98 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Bonus sozlamalari</h1>
+        <p>Buyurtma yakunlanganda mijozga avtomatik beriladigan bonus pog'onalari</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'bonus-tier-history' %}" class="btn btn-outline-primary rounded-pill px-4">
+            <i class="bi bi-clock-history me-1"></i> Bonus tarixi
+        </a>
+        <a href="{% url 'bonus-tier-create' %}" class="btn btn-primary rounded-pill px-4">
+            <i class="bi bi-plus-lg me-1"></i> Pog'ona qo'shish
+        </a>
+    </div>
+</div>
+
+<div class="mm-card mb-4">
+    <div class="mm-card__body">
+        <div class="d-flex align-items-start gap-2">
+            <i class="bi bi-info-circle-fill" style="color:var(--mm-primary); font-size:1.1rem;"></i>
+            <div class="small text-muted">
+                Bonus buyurtma yakunlangach (yetkazib berilgach) mijozning sodiqlik balansiga
+                <strong>avtomatik</strong> qo'shiladi &mdash; admin har bir buyurtma uchun alohida tasdiqlash shart emas.
+                Bu yerdagi sozlamalarni o'zgartirish <strong>faqat yangi buyurtmalarga</strong> ta'sir qiladi;
+                allaqachon yakunlangan eski buyurtmalarning bonusi qayta hisoblanmaydi.
+                Buyurtma summasi hech qaysi faol pog'onaga mos kelmasa (masalan bo'sh oraliq), bonus berilmaydi.
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mm-card">
+    <div class="mm-card__header">
+        <div>
+            <h5 class="mm-card__title">Bonus pog'onalari</h5>
+            <div class="mm-card__subtitle">Buyurtma summasi oralig'iga qarab beriladigan bonus</div>
+        </div>
+    </div>
+    <div class="mm-card__body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3 text-start ps-4">Buyurtma summasi</th>
+                        <th class="py-3">Bonus</th>
+                        <th class="py-3">Holati</th>
+                        <th class="py-3">Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tiers %}
+                    <tr>
+                        <td class="text-start ps-4 fw-semibold" style="color:var(--mm-heading);">
+                            {{ t.min_amount|floatformat:'0' }} ₩
+                            &ndash;
+                            {% if t.max_amount %}{{ t.max_amount|floatformat:'0' }} ₩{% else %}<span class="text-muted">yuqori chegarasiz</span>{% endif %}
+                        </td>
+                        <td class="fw-bold text-primary">{{ t.bonus_amount|floatformat:'0' }} ₩</td>
+                        <td>
+                            {% if t.active %}
+                            <span class="mm-pill mm-pill--success">Faol</span>
+                            {% else %}
+                            <span class="mm-pill mm-pill--neutral">Nofaol</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="d-flex justify-content-center gap-1">
+                                <a href="{% url 'bonus-tier-edit' t.id %}" class="mm-btn-icon" title="Tahrirlash">
+                                    <i class="bi bi-pencil-square"></i>
+                                </a>
+                                <form action="{% url 'bonus-tier-delete' t.id %}" method="POST" class="d-inline"
+                                      onsubmit="return confirm('Ushbu bonus pog\'onasini o\'chirishni tasdiqlaysizmi?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="mm-btn-icon mm-btn-icon--danger" title="O'chirish">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="mm-empty">
+                                <i class="bi bi-gift"></i>
+                                <strong>Hali bonus pog'onasi sozlanmagan</strong>
+                                <span class="small">Sozlanmaguncha, buyurtma yakunlanganda hech qanday bonus berilmaydi</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

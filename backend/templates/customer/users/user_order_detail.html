@@ -1,0 +1,246 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<div class="pagetitle d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h1 style="font-weight: 700; color: #012970;">Buyurtma Tafsiloti #{{ order.id }}</h1>
+        <nav>
+            <ol class="breadcrumb mb-0">
+                <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+                <li class="breadcrumb-item"><a href="{% url 'all-orders-list' %}">Buyurtmalar</a></li>
+                <li class="breadcrumb-item active">Tafsilotlar</li>
+            </ol>
+        </nav>
+    </div>
+    <button class="btn btn-outline-secondary rounded-pill px-4 shadow-sm" onclick="goBack()">
+        <i class="bi bi-arrow-left me-1"></i> Ortga qaytish
+    </button>
+</div>
+
+<section class="section">
+    <div class="row">
+        <!-- CHAP USTUN: Mijoz va Buyurtma haqida -->
+        <div class="col-xl-4">
+            <!-- 1. HEADER: Profil va IDlar -->
+            <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-0 pt-4 pb-2 text-center">
+                    <div class="avatar-lg bg-primary-light text-primary rounded-circle d-flex align-items-center justify-content-center mx-auto mb-2"
+                         style="width: 70px; height: 70px; font-size: 2rem; background: #f0f4ff;">
+                        <i class="bi bi-person-badge-fill"></i>
+                    </div>
+                    <h5 class="fw-bold mb-0" style="color: #012970;">{{ user.full_name }}</h5>
+                    <div class="d-flex justify-content-center gap-2 mt-2">
+                        <span class="badge bg-light text-muted border small">Order: #{{ order.id }}</span>
+                        <span class="badge bg-light text-primary border small">Mijoz: #{{ user.id }}</span>
+                    </div>
+                </div>
+
+                <div class="card-body p-4">
+                    <!-- Bog'lanish -->
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Bog'lanish</label>
+                        <div class="p-2 rounded-3 border bg-white d-flex align-items-center shadow-sm">
+                            <i class="bi bi-telephone-fill text-success me-2 ms-1"></i>
+                            <span class="fw-bold text-dark">{{ user.phone_number|default:"Kiritilmagan" }}</span>
+                            <a href="tel:{{ user.phone_number }}" class="ms-auto btn btn-sm btn-light rounded-pill border">
+                                <i class="bi bi-phone"></i>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Buyurtma Holati -->
+                    <div class="mb-3">
+                        <label class="text-muted small fw-bold text-uppercase mb-1 d-block">Hozirgi holat</label>
+                        <div class="p-2 rounded-3 border d-flex align-items-center justify-content-between bg-light">
+                            <span class="small fw-semibold ps-1 text-dark">Status:</span>
+                            {% if order.status == "pending" %}
+                                <span class="badge bg-warning text-dark rounded-pill px-3">Kutilmoqda</span>
+                            {% elif order.status == "approved" %}
+                                <span class="badge bg-primary rounded-pill px-3">Tasdiqlandi</span>
+                            {% elif order.status == "sent" %}
+                                <span class="badge bg-success rounded-pill px-3">Yuborildi</span>
+                            {% elif order.status == "cancelled" %}
+                                <span class="badge bg-danger rounded-pill px-3">Bekor qilindi</span>
+                            {% else %}
+                                <span class="badge bg-secondary rounded-pill px-3">{{ order.status }}</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- TO'LOV CHEKI -->
+                    <div>
+                        <label class="text-muted small fw-bold text-uppercase mb-1 d-block">To'lov hujjati</label>
+                        <div class="d-flex align-items-center p-2 rounded-3 border bg-white shadow-sm">
+                            <div class="me-3">
+                                {% if order.payment_receipt %}
+                                    <div class="receipt-thumb-wrapper" data-bs-toggle="modal" data-bs-target="#receiptModal" style="position: relative; cursor: pointer; width: 45px; height: 45px;">
+                                        <img src="{{ order.payment_receipt.url }}" class="rounded shadow-sm" style="width: 100%; height: 100%; object-fit: cover;">
+                                        <div class="thumb-overlay d-flex align-items-center justify-content-center rounded"><i class="bi bi-zoom-in"></i></div>
+                                    </div>
+                                {% else %}
+                                    <div class="rounded bg-light d-flex align-items-center justify-content-center" style="width: 45px; height: 45px;">
+                                        <i class="bi bi-file-earmark-x text-muted"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0 small fw-bold text-dark">Kvitansiya</h6>
+                                <small class="text-muted" style="font-size: 11px;">
+                                    {% if order.payment_receipt %}Rasmni ko'rish uchun bosing{% else %}Yuklanmagan{% endif %}
+                                </small>
+                            </div>
+                            {% if order.payment_receipt %}
+                            <button type="button" class="btn btn-sm btn-outline-primary border-0 rounded-circle" data-bs-toggle="modal" data-bs-target="#receiptModal">
+                                <i class="bi bi-eye-fill"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Manzil va Izoh -->
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted"><i class="bi bi-geo-alt-fill text-danger me-1"></i> Yetkazib berish manzili</h6>
+                    <div class="p-3 rounded-3 bg-light border-start border-danger border-3 small text-dark mb-3">
+                        {% if order.user.location.exists %}
+                            <strong>{{ order.user.location.first.address }}</strong>
+                        {% else %}
+                            <span class="text-muted fst-italic">Manzil kiritilmagan</span>
+                        {% endif %}
+                    </div>
+
+                    <h6 class="fw-bold mb-2 small text-uppercase text-muted"><i class="bi bi-chat-left-dots-fill text-primary me-1"></i> Mijoz izohi</h6>
+                    <div class="p-3 rounded-3 border bg-white small text-muted mb-4 shadow-none" style="border-left: 3px solid #4154f1 !important;">
+                        {{ order.comment|default:"Mijoz tomonidan izoh qoldirilmagan." }}
+                    </div>
+
+                    <div class="pt-3 border-top">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <span class="text-muted small">Buyurtma sanasi:</span>
+                            <span class="small fw-bold">{{ order.created_at|date:"d.m.Y | H:i" }}</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <span class="text-muted fw-bold">Jami summa:</span>
+                            <span class="fs-4 fw-bold text-primary">{{ order.total_amount }} ₩</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- O'NG USTUN: Mahsulotlar Ro'yxati -->
+        <div class="col-xl-8">
+            <div class="card shadow-sm border-0 rounded-4">
+                <div class="card-body pt-3">
+                    <h5 class="card-title fs-5 mb-4 border-bottom pb-2">
+                        <i class="bi bi-cart3 me-2"></i> Buyurtma tarkibi
+                    </h5>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="text-center py-3" style="width: 80px;">Rasm</th>
+                                <th class="py-3">Mahsulot tafsilotlari</th>
+                                <th class="text-center py-3">Narxi</th>
+                                <th class="text-center py-3">Soni</th>
+                                <th class="text-end py-3">Jami</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for item in order_items_data %}
+                            <tr>
+                                <td class="text-center">
+                                    {% if item.first_image_url %}
+                                        <img src="{{ item.first_image_url }}" class="rounded border shadow-sm" height="65" width="65" style="object-fit: cover;">
+                                    {% else %}
+                                        <div class="rounded border bg-light d-flex align-items-center justify-content-center mx-auto" style="width: 65px; height: 65px;">
+                                            <i class="bi bi-image text-muted fs-4"></i>
+                                        </div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="mb-1">
+                                        <span class="badge bg-success-light text-success small mb-1">Mahsulot</span>
+                                        <div class="fw-bold text-dark fs-6">{{ item.details.name }}</div>
+                                        {% if item.order_item.product.goods.expire_date %}
+                                        <div class="small text-muted">
+                                            <i class="bi bi-clock-history me-1"></i>Yaroqlilik: {{ item.order_item.product.goods.expire_date|date:"d.m.Y" }}
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td class="text-center fw-semibold">
+                                    {{ item.order_item.product.new_price|default:item.order_item.product.old_price }} ₩
+                                </td>
+                                <td class="text-center">
+                                    <span class="badge bg-light text-dark border px-3">x{{ item.order_item.quantity }}</span>
+                                </td>
+                                <td class="text-end fw-bold text-primary">
+                                    {{ item.total_price }} ₩
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                            <tfoot class="table-light border-top">
+                            <tr>
+                                <td colspan="4" class="text-end py-2 text-muted">Mahsulotlar summasi:</td>
+                                <td class="text-end py-2 fw-semibold">{{ total_products_amount }} ₩</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end py-2 text-muted">Dostavka:</td>
+                                <td class="text-end py-2 fw-semibold">{{ order.delivery_fee.delivery_fee|default:"0" }} ₩</td>
+                            </tr>
+                            <tr>
+                                <td colspan="4" class="text-end py-3 fw-bold fs-5 text-dark">Umumiy:</td>
+                                <td class="text-end py-3 fw-bold text-primary fs-5">{{ order.total_amount }} ₩</td>
+                            </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Rasm uchun Modal -->
+{% if order.payment_receipt %}
+<div class="modal fade" id="receiptModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow-lg rounded-4">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title fw-bold small text-uppercase">To'lov cheki #{{ order.id }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4 text-center">
+                <img src="{{ order.payment_receipt.url }}" class="img-fluid rounded-3 shadow">
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<style>
+    .bg-primary-light { background-color: #f0f4ff; }
+    .bg-success-light { background-color: #e8f5e9; }
+    .receipt-thumb-wrapper { position: relative; overflow: hidden; border-radius: 8px; }
+    .thumb-overlay {
+        position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+        background: rgba(0,0,0,0.4); color: white;
+        display: flex; align-items: center; justify-content: center;
+        opacity: 0; transition: 0.3s; cursor: pointer; font-size: 12px;
+    }
+    .receipt-thumb-wrapper:hover .thumb-overlay { opacity: 1 !important; }
+    .rounded-4 { border-radius: 1rem !important; }
+    .section { font-family: 'Poppins', sans-serif; }
+</style>
+
+<script>
+    function goBack() { window.history.back(); }
+</script>
+
+{% endblock %}

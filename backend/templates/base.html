@@ -1,0 +1,543 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Dashboard - Million Halal Market</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin/>
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet"/>
+
+    <!-- Vendor CSS Files -->
+    <link href="{% static 'assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/quill/quill.snow.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/quill/quill.bubble.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/remixicon/remixicon.css' %}" rel="stylesheet"/>
+    <link href="{% static 'assets/vendor/simple-datatables/style.css' %}" rel="stylesheet"/>
+
+    <!-- Template Main CSS File -->
+    <link rel="stylesheet" href="{% static 'assets/css/style.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/loyalty.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/admin-dashboard.css' %}">
+
+    <style>
+        /* Mobil versiyada jadval va kartalarni chiroyli qilish uchun */
+        @media (max-width: 768px) {
+            .pagetitle h1 { font-size: 1.2rem; }
+            .card-title { font-size: 1rem; }
+            .info-card h6 { font-size: 1.2rem; }
+            .main { padding: 20px 10px !important; }
+        }
+    </style>
+</head>
+
+<body>
+<!-- ======= Header ======= -->
+<header id="header" class="header fixed-top d-flex align-items-center">
+    <div class="d-flex align-items-center justify-content-between">
+        <a href="{% url 'dashboard' %}" class="logo d-flex align-items-center">
+            <img src="{% static 'assets/img/logo.png' %}" alt="Logo"/>
+            <span class="d-none d-lg-block">Million Mart</span>
+        </a>
+        <!-- MENYU TUGMASI (MOBILDA SIDEBARNI OCHISH UCHUN) -->
+        <i class="bi bi-list toggle-sidebar-btn" id="toggle-btn"></i>
+    </div>
+
+    <div class="mm-topbar-search d-none d-lg-flex ms-4">
+        <i class="bi bi-search"></i>
+        <input type="text" placeholder="Qidirish..." disabled title="Tez orada">
+    </div>
+
+    <nav class="header-nav ms-auto">
+        <ul class="d-flex align-items-center gap-2">
+            <li class="nav-item">
+                <span class="mm-notif-bell" title="Bildirishnomalar (tez orada)">
+                    <i class="bi bi-bell"></i>
+                    <span class="dot"></span>
+                </span>
+            </li>
+            <li class="nav-item dropdown pe-3">
+                <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+                    <img src="{% static 'assets/img/admin-logo.jpg' %}" alt="Profile" class="rounded-circle"/>
+                    <span class="d-none d-md-block dropdown-toggle ps-2">ADMIN</span>
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+                    <li class="dropdown-header">
+                        <h6>Million Admin</h6>
+                        <span>Halal mart</span>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <a class="dropdown-item d-flex align-items-center" href="{% url 'logout' %}">
+                            <i class="bi bi-box-arrow-right"></i>
+                            <span>Sign Out</span>
+                        </a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+</header>
+
+<!-- ======= Sidebar ======= -->
+<aside id="sidebar" class="sidebar">
+    <ul class="sidebar-nav" id="sidebar-nav">
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.path == dashboard_url %}active{% else %}collapsed{% endif %}" href="{% url 'dashboard' %}">
+                <i class="bi bi-grid"></i><span>Dashboard</span>
+            </a>
+        </li>
+
+        <li class="nav-heading">Katalog</li>
+
+        <!-- Mahsulotlar (2 ta qism) -->
+        <li class="nav-item">
+            <a class="nav-link {% if 'dashboard/product' not in request.path %}collapsed{% endif %}" data-bs-target="#mahsulotlar-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-journal-text"></i><span>Mahsulotlar</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="mahsulotlar-nav" class="nav-content collapse {% if 'dashboard/product' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'category-list' %}" class="{% if request.path == category_list %}active{% endif %}"><i class="bi bi-circle"></i><span>Bosh kategoriyalar</span></a></li>
+                <li><a href="{% url 'good-list' %}" class="{% if request.path == good_list %}active{% endif %}"><i class="bi bi-circle"></i><span>Oziq-ovqat mahsulotlari</span></a></li>
+            </ul>
+        </li>
+
+        <li class="nav-heading">Savdo</li>
+
+        <!-- Buyurtmalar boshqaruvi (3 ta qism - SIZ SO'RAGANINGIZDEK) -->
+        <li class="nav-item">
+            {% url 'all-orders-list' as all_url %}
+            {% url 'unpaid-orders-list' as pending_url %}
+            {% url 'payment-pending-orders' as payment_url %}
+            <a class="nav-link {% if 'orders' not in request.path and 'unpaid' not in request.path %}collapsed{% endif %}" data-bs-target="#orders-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-cart-check"></i><span>Buyurtmalar boshqaruvi</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="orders-nav" class="nav-content collapse {% if 'orders' in request.path or 'unpaid' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{{ all_url }}" class="{% if request.path == all_url %}active{% endif %}"><i class="bi bi-circle"></i><span>Order ro'yxati</span></a></li>
+                <li><a href="{{ pending_url }}" class="{% if request.path == pending_url %}active{% endif %}"><i class="bi bi-circle"></i><span>Kutilayotganlar</span></a></li>
+                <li><a href="{{ payment_url }}" class="{% if request.path == payment_url %}active{% endif %}"><i class="bi bi-circle"></i><span>To'lov kutilmoqda</span></a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if request.path != users_list_url %}collapsed{% endif %}" href="{% url 'users-list' %}">
+                <i class="bi bi-person"></i><span>Foydalanuvchilar</span>
+            </a>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if '/b2b/' in request.path %}active{% else %}collapsed{% endif %}" href="{% url 'b2b-applications-list' %}">
+                <i class="bi bi-briefcase"></i><span>B2B Arizalar</span>
+            </a>
+        </li>
+
+        <li class="nav-heading">Sodiqlik va referallar</li>
+
+        <!-- Sodiqlik Kartalari (3 ta qism - SIZ SO'RAGANINGIZDEK) -->
+        <li class="nav-item">
+            <a class="nav-link {% if 'loyalty' not in request.path %}collapsed{% endif %}" data-bs-target="#loyalty-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-card-checklist"></i><span>Sodiqlik Kartalari</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="loyalty-nav" class="nav-content collapse {% if 'loyalty' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'loyalty_customer_list' %}" class="{% if '/loyalty/customer/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Mijozlar balansi</span></a></li>
+                <li><a href="{% url 'all_pending_bonuses' %}" class="{% if '/loyalty/pending/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Kutilayotgan bonuslar</span></a></li>
+                <li><a href="{% url 'referral_list' %}" class="{% if '/loyalty/referrals/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Referallar tizimi</span></a></li>
+                <li><a href="{% url 'bonus-tier-list' %}" class="{% if '/bonus-tiers/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Buyurtma bonusi</span></a></li>
+            </ul>
+        </li>
+
+        <li class="nav-heading">Sozlamalar</li>
+
+        <!-- Barcha "narx/moliya" sozlamalari bitta joyda: yetkazib berish (og'irlik asosida),
+             eski xizmat narxlari, bank kartalari -->
+        <li class="nav-item">
+            <a class="nav-link {% if 'delivery-fees' not in request.path and 'bank-cards' not in request.path and 'other/service' not in request.path %}collapsed{% endif %}" data-bs-target="#moliya-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-truck"></i><span>Yetkazib berish va to'lov</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="moliya-nav" class="nav-content collapse {% if 'delivery-fees' in request.path or 'bank-cards' in request.path or 'other/service' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'delivery-fee-list' %}" class="{% if '/delivery-fees/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Yetkazib berish narxi (20 kg)</span></a></li>
+                <li><a href="{% url 'bank-card-list' %}" class="{% if '/bank-cards/' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Bank kartalari</span></a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if 'settings/telegram' not in request.path and 'settings/push' not in request.path %}collapsed{% endif %}" data-bs-target="#telegram-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-telegram"></i><span>Telegram va push</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="telegram-nav" class="nav-content collapse {% if 'settings/telegram' in request.path or 'settings/push' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'telegram-settings' %}" class="{% if 'settings/telegram' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Telegram sozlamalari</span></a></li>
+                <li><a href="{% url 'push-compose' %}" class="{% if 'settings/push' in request.path %}active{% endif %}"><i class="bi bi-circle"></i><span>Push xabar yozish</span></a></li>
+            </ul>
+        </li>
+
+        <li class="nav-item">
+            <a class="nav-link {% if 'dashboard/news' not in request.path and 'socialmedia' not in request.path and 'info' not in request.path and 'other/service' not in request.path %}collapsed{% endif %}" data-bs-target="#qoshimchalar-nav" data-bs-toggle="collapse" href="#">
+                <i class="bi bi-question-circle"></i><span>Qo'shimchalar</span><i class="bi bi-chevron-down ms-auto"></i>
+            </a>
+            <ul id="qoshimchalar-nav" class="nav-content collapse {% if 'dashboard/news' in request.path or 'socialmedia' in request.path or 'info' in request.path %}show{% endif %}" data-bs-parent="#sidebar-nav">
+                <li><a href="{% url 'info-list' %}"><i class="bi bi-circle"></i><span>Ma'lumotnomalar</span></a></li>
+                <li><a href="{% url 'banner-list' %}"><i class="bi bi-circle"></i><span>Bannerlar</span></a></li>
+                <li><a href="{% url 'news-list' %}"><i class="bi bi-circle"></i><span>E'lonlar</span></a></li>
+                <li><a href="{% url 'socialmedia' %}"><i class="bi bi-circle"></i><span>Ijtimoiy tarmoqlar</span></a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <div class="mm-sidebar-footer">
+        <a href="{% url 'info-list' %}"><i class="bi bi-question-circle"></i><span>Yordam</span></a>
+        <a href="{% url 'logout' %}"><i class="bi bi-box-arrow-right"></i><span>Chiqish</span></a>
+    </div>
+</aside>
+
+<main id="main" class="main">
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert {% if message.tags == 'error' %}alert-danger{% elif message.tags == 'warning' %}alert-warning{% elif message.tags == 'success' %}alert-success{% else %}alert-info{% endif %} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div class="mm-page-head">
+        <div>
+            <h1>Million halol market</h1>
+            <p>Admin panel &middot; kunlik operatsion ko'rinish</p>
+        </div>
+    </div>
+    <!-- End Page Title -->
+
+    {% block content %}
+    <section class="section dashboard">
+        <div class="row">
+
+            <!-- HERO + STAT CARDS v2 (SalesMonk-style: bitta accent hero + 4 oq karta) -->
+            <div class="col-12 mb-4">
+                <div class="row g-3">
+                    <div class="col-lg-4 col-md-6">
+                        <div class="mm-hero-card">
+                            <div>
+                                <div class="mm-hero-card__icon"><i class="fas fa-won-sign"></i></div>
+                                <div class="mm-hero-card__label">Umumiy daromad</div>
+                                <div class="mm-hero-card__value">{{ total_revenue|floatformat:0 }} ₩</div>
+                            </div>
+                            <span class="mm-hero-card__delta"><i class="bi bi-arrow-up-short"></i> +{{ revenue_today|floatformat:0 }} ₩ bugun</span>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <a href="{% url 'all-orders-list' %}" class="text-decoration-none d-block h-100">
+                            <div class="mm-stat-card-v2">
+                                <div class="mm-stat-card-v2__icon" style="background:var(--color-danger);"><i class="bi bi-exclamation-octagon"></i></div>
+                                <div class="mm-stat-card-v2__value">{{ pending_orders }} ta</div>
+                                <div class="mm-stat-card-v2__label">Tasdiq kutilmoqda</div>
+                                <span class="mm-trend-pill mm-trend-pill--urgent">Harakat kerak</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <a href="{% url 'unpaid-orders-list' %}" class="text-decoration-none d-block h-100">
+                            <div class="mm-stat-card-v2">
+                                <div class="mm-stat-card-v2__icon" style="background:var(--color-primary);"><i class="bi bi-cash-stack"></i></div>
+                                <div class="mm-stat-card-v2__value">{{ check_pending }} ta</div>
+                                <div class="mm-stat-card-v2__label">Chek tekshiruvi</div>
+                                <span class="mm-trend-pill mm-trend-pill--warn">Kutilmoqda</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <a href="{% url 'all_pending_bonuses' %}" class="text-decoration-none d-block h-100">
+                            <div class="mm-stat-card-v2">
+                                <div class="mm-stat-card-v2__icon" style="background:var(--color-warning);"><i class="bi bi-gift"></i></div>
+                                <div class="mm-stat-card-v2__value">{{ pending_bonuses }} ta</div>
+                                <div class="mm-stat-card-v2__label">Bonus so'rovlari</div>
+                                <span class="mm-trend-pill mm-trend-pill--warn">Kutilmoqda</span>
+                            </div>
+                        </a>
+                    </div>
+
+                    <div class="col-lg-2 col-md-6">
+                        <div class="mm-stat-card-v2">
+                            <div class="mm-stat-card-v2__icon" style="background:var(--color-success);"><i class="bi bi-people"></i></div>
+                            <div class="mm-stat-card-v2__value">{{ customers }} ta</div>
+                            <div class="mm-stat-card-v2__label">Foydalanuvchilar</div>
+                            <span class="mm-trend-pill mm-trend-pill--up"><i class="bi bi-arrow-up-short"></i> +{{ customers_today }} yangi</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CHARTLAR: real ma'lumot asosida (soxta raqam yo'q) -->
+            <div class="col-12 mb-4">
+                <div class="row g-3">
+                    <div class="col-lg-7">
+                        <div class="mm-chart-card">
+                            <div class="mm-chart-card__title">Eng ko'p sotilgan mahsulotlar</div>
+                            <div class="mm-chart-card__subtitle">Miqdor bo'yicha top-10</div>
+                            {% if chart_data %}
+                            <canvas id="topProductsChart" height="130"></canvas>
+                            {% else %}
+                            <div class="mm-chart-empty">Hozircha sotuv ma'lumoti yo'q</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-lg-5">
+                        <div class="mm-chart-card">
+                            <div class="mm-chart-card__title">Buyurtmalar holati</div>
+                            <div class="mm-chart-card__subtitle">Barcha buyurtmalar bo'yicha taqsimot</div>
+                            {% if order_status_data %}
+                            <canvas id="orderStatusChart" height="180"></canvas>
+                            {% else %}
+                            <div class="mm-chart-empty">Hozircha buyurtma ma'lumoti yo'q</div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="row">
+                    <!-- SO'NGGI BUYURTMALAR JADVALI (Yangilangan status ranglari bilan) -->
+                    <div class="col-12">
+                        <div class="card recent-sales overflow-auto">
+                            <div class="card-body">
+                                <h5 class="card-title">So'nggi buyurtmalar</h5>
+                                <table class="mm-table-v2 datatable">
+                                    <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Foydalanuvchi</th>
+                                        <th>Sana</th>
+                                        <th>Summa</th>
+                                        <th>Holati</th>
+                                        <th>Amal</th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for c in recent %}
+                                    <tr>
+                                        <td>#{{ c.order_number }}</td>
+                                        <td>{{ c.user.full_name }}</td>
+                                        <td>{{ c.created_at|date:"d.m.Y H:i" }}</td>
+                                        <td>{{ c.total_amount }} ₩</td>
+                                        <td>
+                                            {% if c.status == 'in_cart' %}<span class="mm-pill mm-pill--neutral">Savatchada</span>
+                                            {% elif c.status == 'pending' %}<span class="mm-pill mm-pill--danger">Tasdiq kutilmoqda</span>
+                                            {% elif c.status == 'check_pending' %}<span class="mm-pill mm-pill--info">Chek tekshiruvi</span>
+                                            {% elif c.status == 'approved' %}<span class="mm-pill mm-pill--success">Tasdiqlangan</span>
+                                            {% elif c.status == 'sent' %}<span class="mm-pill mm-pill--success">Yetkazildi</span>
+                                            {% elif c.status == 'cancelled' %}<span class="mm-pill mm-pill--danger">Bekor qilindi</span>
+                                            {% else %}<span class="mm-pill mm-pill--neutral">{{ c.status }}</span>{% endif %}
+                                        </td>
+                                        <td>
+                                            <a href="{% url 'user-order-detail' c.id %}"
+                                               class="btn btn-sm btn-outline-dark">Ko'rish</a>
+                                        </td>
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-2">
+                                                <button type="button"
+                                                        class="btn btn-light btn-sm rounded-pill border shadow-sm px-3"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#deleteOrderModal{{ c.id }}"
+                                                        title="O'chirish">
+                                                    <i class="bi bi-trash text-danger"></i>
+                                                </button>
+                                            </div>
+
+                                            <!-- O'chirishni tasdiqlash Modali -->
+                                            <div class="modal fade" id="deleteOrderModal{{ c.id }}" tabindex="-1"
+                                                 aria-hidden="true">
+                                                <div class="modal-dialog modal-dialog-centered">
+                                                    <div class="modal-content border-0 rounded-4 shadow">
+                                                        <div class="modal-header bg-danger text-white border-0 py-3">
+                                                            <h5 class="modal-title fw-bold">Buyurtmani o'chirish #{{ c.id }}</h5>
+                                                            <button type="button" class="btn-close btn-close-white"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body p-4 text-center">
+                                                            <i class="bi bi-exclamation-triangle text-danger mb-3"
+                                                               style="font-size: 3rem;"></i>
+                                                            <p class="text-dark mb-0">Haqiqatan ham ushbu buyurtmani
+                                                                o'chirmoqchimisiz?</p>
+                                                            <p class="text-muted small">Mijoz: <strong>{{ c.user.full_name }}</strong></p>
+                                                        </div>
+                                                        <div class="modal-footer border-0 justify-content-center pb-4">
+                                                            <button type="button"
+                                                                    class="btn btn-light rounded-pill px-4"
+                                                                    data-bs-dismiss="modal">Bekor qilish
+                                                            </button>
+                                                            <form method="post" action="{% url 'delete_dashboard' c.id %}">
+                                                                {% csrf_token %}
+                                                                <input type="hidden" name="page"
+                                                                       value="{{ page_obj.number }}">
+                                                                <button type="submit"
+                                                                        class="btn btn-danger rounded-pill px-4 fw-bold">
+                                                                    Ha, o'chirilsin
+                                                                </button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. O'NG TOMON PANEL (OMBOR VA KOMMENTLAR) -->
+            <div class="col-lg-4">
+                <!-- Ombor qoldig'i -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Tugayotgan mahsulotlar ⚠️</h5>
+                        <ul class="list-group list-group-flush">
+                            {% for item in low_stock %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                {{ item.goods.name_uz|truncatechars:20 }}
+                                <span class="mm-pill mm-pill--danger">{{ item.available_quantity }} ta</span>
+                            </li>
+                            {% empty %}
+                            <div class="mm-empty py-3">
+                                <i class="bi bi-box-seam"></i>
+                                <strong>Hammasi yetarli</strong>
+                                <span class="small">Kam qolgan mahsulot yo'q</span>
+                            </div>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Kommentlar -->
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Yangi izohlar</h5>
+                        {% for c in comments %}
+                        <div class="news">
+                            <div class="post-item clearfix mb-3">
+                                <strong>{{ c.user.full_name }}</strong>: <span class="small text-muted">{{ c.comment|truncatechars:50 }}</span>
+                                <br><small>{{ c.created_at|date:"H:i" }} | <a href="{% url 'user-order-detail' c.id %}">Buyurtma
+                                #{{c.id}}</a></small>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="mm-empty py-3">
+                            <i class="bi bi-chat-square-text"></i>
+                            <strong>Izohlar yo'q</strong>
+                            <span class="small">Hozircha yangi izoh kelmagan</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </section>
+    {{ chart_data|json_script:"top-products-data" }}
+    {{ order_status_data|json_script:"order-status-data" }}
+    {% endblock %}
+</main>
+
+<!-- ======= Footer ======= -->
+<footer id="footer" class="footer">
+    <div class="copyright">
+        &copy; Copyright <strong><span>Million Halal Mart 2024</span></strong>.
+    </div>
+</footer>
+
+<a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>
+
+<!-- Vendor JS Files -->
+<script src="{% static 'assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
+
+<!-- Toggling Sidebar JS (MAJBURUR MOBILDA ISHLASHI UCHUN) -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const toggleBtn = document.querySelector('.toggle-sidebar-btn');
+        if (toggleBtn) {
+            toggleBtn.addEventListener('click', () => {
+                document.body.classList.toggle('toggle-sidebar');
+            });
+        }
+    });
+</script>
+
+<script src="{% static 'assets/js/main.js' %}"></script>
+
+{% if chart_data or order_status_data %}
+<script src="{% static 'assets/vendor/chart.js/chart.umd.js' %}"></script>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const CHART_COLORS = ['#3D5AFE', '#22C55E', '#F59E0B', '#EF4444', '#8A8FA3', '#2A3EB1', '#60A5FA', '#34D399'];
+
+    const topProductsEl = document.getElementById('top-products-data');
+    const topProductsCanvas = document.getElementById('topProductsChart');
+    if (topProductsEl && topProductsCanvas && window.Chart) {
+        const data = JSON.parse(topProductsEl.textContent);
+        if (Array.isArray(data) && data.length) {
+            new Chart(topProductsCanvas, {
+                type: 'bar',
+                data: {
+                    labels: data.map(d => d.title),
+                    datasets: [{
+                        label: "Sotilgan miqdor",
+                        data: data.map(d => d.total_quantity),
+                        backgroundColor: '#3D5AFE',
+                        borderRadius: 6,
+                        maxBarThickness: 28,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, ticks: { precision: 0 } },
+                        x: { ticks: { autoSkip: false, maxRotation: 30, minRotation: 0 } }
+                    }
+                }
+            });
+        }
+    }
+
+    const orderStatusEl = document.getElementById('order-status-data');
+    const orderStatusCanvas = document.getElementById('orderStatusChart');
+    if (orderStatusEl && orderStatusCanvas && window.Chart) {
+        const data = JSON.parse(orderStatusEl.textContent);
+        if (Array.isArray(data) && data.length) {
+            new Chart(orderStatusCanvas, {
+                type: 'doughnut',
+                data: {
+                    labels: data.map(d => d.label),
+                    datasets: [{
+                        data: data.map(d => d.count),
+                        backgroundColor: CHART_COLORS,
+                        borderWidth: 0,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { position: 'bottom', labels: { boxWidth: 10, font: { size: 11 } } } },
+                    cutout: '65%',
+                }
+            });
+        }
+    }
+});
+</script>
+{% endif %}
+</body>
+</html>

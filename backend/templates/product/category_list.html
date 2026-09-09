@@ -1,0 +1,163 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<div class="mm-page-head">
+    <div>
+        <h1>Bosh kategoriyalar</h1>
+        <p>Katalogdagi asosiy kategoriyalar &mdash; faollik va TOP holatini shu yerdan boshqaring</p>
+    </div>
+    <button type="button" class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
+            data-bs-target="#createCategoryModal">
+        <i class="bi bi-plus-lg me-1"></i> Kategoriya yaratish
+    </button>
+</div>
+
+<div class="mm-card">
+    <div class="mm-card__body">
+        <div class="mm-toolbar">
+            <div class="mm-search">
+                <i class="bi bi-search"></i>
+                <input type="text" id="categorySearch" placeholder="Nomi bo'yicha qidirish...">
+            </div>
+            <span class="mm-pill mm-pill--neutral"><span id="categoryCount">{{ categories|length }}</span> ta kategoriya</span>
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" id="categoryTable">
+                <thead class="table-light">
+                <tr>
+                    <th class="text-center">#</th>
+                    <th>Nomi</th>
+                    <th class="text-center">Toifasi</th>
+                    <th class="text-center">Foto</th>
+                    <th class="text-center">Yaratilgan</th>
+                    <th class="text-center">Holati</th>
+                    <th class="text-center">TOP</th>
+                    <th class="text-center">Amal</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for c in categories %}
+                <tr class="category-row" data-name="{{ c.name_uz|lower }}">
+                    <td class="text-center text-muted fw-bold">{{ c.id }}</td>
+                    <td class="fw-semibold" style="color:var(--mm-heading);">{{ c.name_uz }}</td>
+                    <td class="text-center">{{ c.get_main_type_display }}</td>
+                    <td class="text-center">
+                        {% if c.image %}
+                        <img src="{{ c.image.url }}" alt="{{ c.name_uz }}" width="42" height="42"
+                             style="object-fit:cover; border-radius:10px; border:1px solid var(--mm-border);"/>
+                        {% else %}
+                        <span class="text-muted small">&mdash;</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center small text-muted">
+                        {{ c.created|date:"d.m.Y" }}<br>{{ c.created|date:"H:i" }}
+                    </td>
+                    <td class="text-center">
+                        {% if c.active %}
+                        <span class="mm-pill mm-pill--success">Faol</span>
+                        {% else %}
+                        <span class="mm-pill mm-pill--neutral">Nofaol</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if c.is_top %}
+                        <span class="mm-pill mm-pill--warning" title="TOP kategoriya"><i class="bi bi-star-fill"></i> TOP</span>
+                        {% else %}
+                        <span class="text-muted small">&ndash;</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'category-edit' c.id %}" class="mm-btn-icon" title="Tahrirlash">
+                            <i class="bi bi-pencil-square"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="mm-empty">
+                            <i class="bi bi-folder2-open"></i>
+                            <strong>Hali kategoriya yo'q</strong>
+                            <span class="small">Yuqoridagi &laquo;Kategoriya yaratish&raquo; tugmasidan boshlang</span>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+            <div id="categoryNoMatch" class="mm-empty" style="display:none;">
+                <i class="bi bi-search"></i>
+                <strong>Hech narsa topilmadi</strong>
+                <span class="small">Boshqa kalit so'z bilan qidiring</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Kategoriya yaratish Modali -->
+<div class="modal fade" id="createCategoryModal" tabindex="-1" aria-labelledby="createCategoryModalLabel"
+     aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-header border-0">
+                <h5 class="modal-title fw-bold" id="createCategoryModalLabel" style="color:var(--mm-heading);">Yangi kategoriya yaratish</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="post" action="{% url 'category-create' %}" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="{% if field.name == 'active' or field.name == 'is_top' %}col-6{% else %}col-md-6{% endif %}">
+                            {% if field.field.widget.input_type == 'checkbox' %}
+                            <div class="form-check pt-4">
+                                {{ field }}
+                                <label class="form-check-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            </div>
+                            {% else %}
+                            <label for="{{ field.id_for_label }}" class="form-label small fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<div class="form-text">{{ field.help_text }}</div>{% endif %}
+                            {% endif %}
+                            {% for error in field.errors %}
+                            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor qilish</button>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check2 me-1"></i> Saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    var input = document.getElementById('categorySearch');
+    if (!input) return;
+    var rows = document.querySelectorAll('#categoryTable .category-row');
+    var noMatch = document.getElementById('categoryNoMatch');
+    var countEl = document.getElementById('categoryCount');
+
+    input.addEventListener('input', function () {
+        var q = input.value.trim().toLowerCase();
+        var visible = 0;
+        rows.forEach(function (row) {
+            var match = row.dataset.name.indexOf(q) !== -1;
+            row.style.display = match ? '' : 'none';
+            if (match) visible++;
+        });
+        countEl.textContent = visible;
+        noMatch.style.display = (visible === 0 && rows.length > 0) ? 'block' : 'none';
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="pagetitle mb-4">
+    <h1 style="font-weight: 700; color: #012970;">{{ title }}</h1>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-6">
+        <div class="card shadow border-0 rounded-4">
+            <div class="card-body p-5">
+                <form method="post">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="text-danger small">{{ field.errors }}</div>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                    
+                    <div class="d-flex justify-content-between mt-5">
+                        <button type="button" class="btn btn-light rounded-pill px-4" onclick="window.history.back()">
+                            <i class="bi bi-arrow-left"></i> Ortga
+                        </button>
+                        <button type="submit" class="btn btn-primary rounded-pill px-5 shadow-lg fw-bold">
+                            Saqlash <i class="bi bi-check-lg ms-1"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
