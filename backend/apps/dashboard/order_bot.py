@@ -12,9 +12,19 @@ from apps.customer.fcm_service import FCMService
 
 def _get_bot_token():
     """TelegramSettings'dagi tokenni ishlatadi, bo'sh bo'lsa .env dagi
-    BOT_TOKEN ga qaytadi (eski deploy'lar uchun moslik)."""
-    settings_obj = TelegramSettings.get_solo()
-    return settings_obj.bot_token or config("BOT_TOKEN", default="")
+    BOT_TOKEN ga qaytadi (eski deploy'lar uchun moslik).
+
+    Bu funksiya modul IMPORT vaqtida chaqiriladi (pastga qarang), ya'ni
+    migratsiyalar hali ishlamagan yoki DB hali tayyor bo'lmagan paytda ham
+    (masalan `collectstatic` migratsiyalardan OLDIN ishlaydigan deploy
+    bosqichida) chaqirilishi mumkin. Shu sababli DB xatoligini yutib,
+    faqat .env fallback'ga tushishi kerak - aks holda butun ilova import
+    bosqichida qulab tushadi."""
+    try:
+        settings_obj = TelegramSettings.get_solo()
+        return settings_obj.bot_token or config("BOT_TOKEN", default="")
+    except Exception:
+        return config("BOT_TOKEN", default="")
 
 
 # Bot obyektini funksiya bilan adashtirmaslik uchun tbot deb nomlaymiz.
