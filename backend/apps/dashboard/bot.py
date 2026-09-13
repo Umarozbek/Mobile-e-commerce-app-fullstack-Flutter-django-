@@ -14,9 +14,9 @@ from django.core.exceptions import ObjectDoesNotExist
 from decimal import Decimal
 
 # --- CONFIG ---
-BOT_TOKEN = config("BOT_TOKEN")
-CHAT_ID = config("CHAT_ID")
-bot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
+BOT_TOKEN = config("BOT_TOKEN", default="")
+CHAT_ID = config("CHAT_ID", default="")
+bot = telebot.TeleBot(BOT_TOKEN or "0", parse_mode="HTML", validate_token=False)
 
 
 # --- YORDAMCHI FUNKSIYA: MATNNI FORMATLASH ---

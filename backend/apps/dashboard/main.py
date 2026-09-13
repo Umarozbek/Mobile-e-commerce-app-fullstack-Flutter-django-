@@ -27,7 +27,7 @@ CHAT_ID = int(config("CHAT_ID", default="0"))
 BOT_TOKEN = config("BOT_TOKEN", default="")
 CHANNEL_USERNAME = "@openai_chat_gpt_robot"
 ADMINS = config("ADMIN", [255081705])
-tbot = telebot.TeleBot(BOT_TOKEN, parse_mode="HTML")
+tbot = telebot.TeleBot(BOT_TOKEN or "0", parse_mode="HTML", validate_token=False)
 
 
 
