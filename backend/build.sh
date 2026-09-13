@@ -4,7 +4,9 @@ set -o errexit
 
 # Pip-ni yangilaymiz va setuptools-ni o'rnatamiz (drf-yasg uchun pkg_resources kerak)
 python -m pip install --upgrade pip
-pip install setuptools
+# pkg_resources yangi setuptools versiyalarida olib tashlangan (drf-yasg
+# hali ham shunga tayanadi) - shu sababli versiyani cheklaymiz.
+pip install "setuptools<81"
 
 pip install -r requirements.txt
 
