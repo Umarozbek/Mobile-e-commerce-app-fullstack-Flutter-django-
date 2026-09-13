@@ -1,0 +1,239 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<div class="pagetitle mb-4">
+    <h1 style="font-weight: 700; color: #0d6efd;">To'lov Kutilayotgan Buyurtmalar</h1>
+    <nav>
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'all-orders-list' %}">Buyurtmalar</a></li>
+            <li class="breadcrumb-item active">To'lov kutilmoqda</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <div class="row">
+        <div class="col-lg-12">
+            <!-- Ko'k rangli border-top bilan dizayn -->
+            <div class="card shadow-sm border-0 border-top border-primary border-4">
+                <div class="card-body pt-3">
+
+                    <!-- Qidiruv va Entries paneli - RESPONSIVE -->
+                    <div class="mb-4">
+                        <form method="get" action="." id="filter-form">
+                            <div class="row g-3 align-items-center">
+
+                                <!-- SHOW ENTRIES -->
+                                <div class="col-6 col-md-auto">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <label class="mb-0 small text-muted fw-bold d-none d-sm-block">Ko'rsatish:</label>
+                                        <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: 80px; border-radius: 8px;">
+                                            <option value="10" {% if request.GET.per_page == '10' %}selected{% endif %}>10</option>
+                                            <option value="25" {% if request.GET.per_page == '25' or not request.GET.per_page %}selected{% endif %}>25</option>
+                                            <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+                                            <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <!-- QIDIRUV (Mobil 100%) -->
+                                <div class="col-12 col-md-4">
+                                    <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden;">
+                                        <span class="input-group-text bg-white border-0">
+                                            <i class="bi bi-search text-muted"></i>
+                                        </span>
+                                        <input type="text" class="form-control border-0 ps-0" name="q"
+                                               value="{{ request.GET.q|default:'' }}" placeholder="ID yoki ism...">
+                                        <button class="btn btn-primary px-3 border-0" type="submit">
+                                            <i class="bi bi-search d-md-none"></i> <span class="d-none d-md-inline">Qidirish</span>
+                                        </button>
+
+                                        {% if request.GET.q or request.GET.per_page %}
+                                            <a href="?" class="btn btn-light border-0 d-flex align-items-center text-danger">
+                                                <i class="bi bi-x-lg"></i>
+                                            </a>
+                                        {% endif %}
+                                    </div>
+                                </div>
+
+                                <!-- ORTGA QAYTISH TUGMASI -->
+                                <div class="col-6 col-md-auto ms-auto text-end">
+                                    <a href="{% url 'all-orders-list' %}" class="btn btn-outline-secondary btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                                        <i class="bi bi-arrow-left me-1"></i> <span class="d-none d-sm-inline">Barcha buyurtmalar</span><span class="d-sm-none">Barchasi</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Jadval qismi (Responsive scroll bilan) -->
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle border-top" style="min-width: 900px;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="py-3 text-center" style="width: 50px;">#ID</th>
+                                    <th>Foydalanuvchi</th>
+                                    <th class="text-center">To'lov Cheki</th>
+                                    <th>Manzil</th>
+                                    <th class="text-center">Summa</th>
+                                    <th class="text-center">Holati</th>
+                                    <th class="text-center">Amallar</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for c in orders %}
+                                <tr>
+                                    <td class="text-center fw-bold text-muted">#{{ c.id }}</td>
+                                    <td>
+                                        <div class="fw-semibold text-dark">{{ c.user.full_name }}</div>
+                                        <div class="small text-muted" style="font-size: 0.75rem;">{{ c.created_at|date:"d.m.Y H:i" }}</div>
+                                    </td>
+                                    <td class="text-center">
+                                        {% if c.payment_receipt %}
+                                            <span class="badge bg-success-light text-success border border-success border-opacity-25 rounded-pill px-3">
+                                                <i class="bi bi-check-lg me-1"></i> Yuklangan
+                                            </span>
+                                        {% else %}
+                                            <span class="badge bg-warning-light text-warning border border-warning border-opacity-25 rounded-pill px-3">
+                                                <i class="bi bi-hourglass-split me-1"></i> Chek yo'q
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-truncate small" style="max-width: 150px;" title="{{ c.user.location.first.address }}">
+                                            {% if c.user.location.exists %}
+                                                <i class="bi bi-geo-alt text-primary small"></i> {{ c.user.location.first.address }}
+                                            {% else %}
+                                                <span class="text-muted italic">Kiritilmagan</span>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="text-center fw-bold text-primary">
+                                        {{ c.total_amount }} ₩
+                                    </td>
+                                    <td class="text-center">
+                                        <form method="post" action="{% url 'update-order-status' c.id %}">
+                                            {% csrf_token %}
+                                            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+                                            <select name="status" class="form-select form-select-sm status-select mx-auto"
+                                                    data-status="{{ c.status }}" onchange="this.form.submit()" style="min-width: 120px;">
+                                                {% for choice_value, choice_label in c.STATUS_CHOICES %}
+                                                    {% if choice_value != 'in_cart' %}
+                                                    <option value="{{ choice_value }}" {% if c.status == choice_value %}selected{% endif %}>
+                                                        {{ choice_label }}
+                                                    </option>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </select>
+                                        </form>
+                                    </td>
+                                    <td class="text-center">
+                                        <div class="d-flex justify-content-center gap-1">
+                                            <a href="{% url 'user-order-detail' c.id %}" class="btn btn-light btn-sm rounded-pill border shadow-sm px-2">
+                                                <i class="bi bi-eye text-primary"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-light btn-sm rounded-pill border shadow-sm px-2" data-bs-toggle="modal" data-bs-target="#deleteOrderModal{{c.id}}">
+                                                <i class="bi bi-trash text-danger"></i>
+                                            </button>
+                                        </div>
+
+                                        <!-- O'chirish Modali -->
+                                        <div class="modal fade" id="deleteOrderModal{{c.id}}" tabindex="-1" aria-hidden="true">
+                                            <div class="modal-dialog modal-dialog-centered modal-sm">
+                                                <div class="modal-content border-0 rounded-4 shadow">
+                                                    <div class="modal-header bg-danger text-white border-0 py-2">
+                                                        <h6 class="modal-title">O'chirish #{{c.id}}</h6>
+                                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                                    </div>
+                                                    <div class="modal-body p-3 text-center">
+                                                        <p class="small mb-0">O'chirishni tasdiqlaysizmi?</p>
+                                                    </div>
+                                                    <div class="modal-footer border-0 justify-content-center pt-0">
+                                                        <form method="post" action="{% url 'delete-order' c.id %}">
+                                                            {% csrf_token %}
+                                                            <input type="hidden" name="page" value="{{page_obj.number}}">
+                                                            <input type="hidden" name="per_page" value="{{request.GET.per_page}}">
+                                                            <button type="submit" class="btn btn-danger btn-sm rounded-pill px-3">O'chirish</button>
+                                                        </form>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="7" class="text-center py-5 text-muted small">
+                                        To'lov kutilayotgan buyurtmalar yo'q.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- KENGAYTIRILGAN PAGINATSIYA (1 2 3 4 5 ...) -->
+                    {% if page_obj.has_other_pages %}
+                    <nav class="mt-4">
+                        <ul class="pagination pagination-sm justify-content-center align-items-center">
+                            {% if page_obj.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">&laquo;</a>
+                                </li>
+                            {% endif %}
+
+                            {% for num in page_obj.paginator.page_range %}
+                                {% if page_obj.number == num %}
+                                    <li class="page-item active"><span class="page-link px-2 px-md-3">{{ num }}</span></li>
+                                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                                    <li class="page-item d-none d-sm-block">
+                                        <a class="page-link px-2 px-md-3" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if page_obj.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">&raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                        <div class="text-center mt-2">
+                            <small class="text-muted" style="font-size: 0.7rem;">Sahifa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</small>
+                        </div>
+                    </nav>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<style>
+    /* Status Dizayni */
+    .bg-success-light { background-color: #e6fffa; }
+    .bg-warning-light { background-color: #fffbeb; }
+
+    .status-select[data-status="pending"] { background-color: #fff3cd; color: #856404; border-color: #ffeeba; }
+    .status-select[data-status="payment_pending"] { background-color: #cfe2ff; color: #084298; border-color: #b6d4fe; }
+    .status-select[data-status="approved"] { background-color: #d1e7dd; color: #0f5132; border-color: #badbcc; }
+    .status-select[data-status="sent"] { background-color: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
+    .status-select[data-status="cancelled"] { background-color: #f8d7da; color: #842029; border-color: #f5c2c7; }
+
+    .status-select { font-size: 0.75rem; font-weight: 600; border-radius: 30px; padding: 0.2rem 0.5rem; cursor: pointer; text-align: center; }
+    .table-hover tbody tr:hover { background-color: #f0f7ff !important; }
+    .pagination .page-link { border-radius: 6px; margin: 0 2px; color: #0d6efd; border: 1px solid #dee2e6; }
+    .pagination .page-item.active .page-link { background: #0d6efd; color: white; border-color: #0d6efd; box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); }
+</style>
+
+<script>
+    document.querySelectorAll('.status-select').forEach(select => {
+        select.addEventListener('change', function() {
+            this.setAttribute('data-status', this.value);
+        });
+    });
+</script>
+{% endblock %}

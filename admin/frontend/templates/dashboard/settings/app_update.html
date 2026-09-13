@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Ilova yangilanish bildirishnomasi</h1>
+        <p>Mobil ilova versiyasini majburiy yoki ixtiyoriy yangilashga undash sozlamalari</p>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="mm-card h-100">
+            <div class="mm-card__header">
+                <div>
+                    <h5 class="mm-card__title"><i class="bi bi-phone me-1"></i> Versiya sozlamalari</h5>
+                    <div class="mm-card__subtitle">Bu bo'lim yoqilmaguncha hech qanday yangilanish talab qilinmaydi</div>
+                </div>
+            </div>
+            <div class="mm-card__body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="form-check form-switch mb-4">
+                        {{ form.is_active }}
+                        <label class="form-check-label fw-bold" for="{{ form.is_active.id_for_label }}">{{ form.is_active.label }}</label>
+                        {% for error in form.is_active.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="row g-3 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.min_supported_version.label }}</label>
+                            {{ form.min_supported_version }}
+                            <div class="form-text">{{ form.min_supported_version.help_text }}</div>
+                            {% for error in form.min_supported_version.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold">{{ form.latest_version.label }}</label>
+                            {{ form.latest_version }}
+                            <div class="form-text">{{ form.latest_version.help_text }}</div>
+                            {% for error in form.latest_version.errors %}
+                            <div class="text-danger small mt-1">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.title.label }}</label>
+                        {{ form.title }}
+                        {% for error in form.title.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.message.label }}</label>
+                        {{ form.message }}
+                        {% for error in form.message.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.android_store_url.label }}</label>
+                        {{ form.android_store_url }}
+                        {% for error in form.android_store_url.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">{{ form.ios_store_url.label }}</label>
+                        {{ form.ios_store_url }}
+                        {% for error in form.ios_store_url.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check2 me-1"></i> Saqlash
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="mm-card h-100">
+            <div class="mm-card__header">
+                <div>
+                    <h5 class="mm-card__title"><i class="bi bi-info-circle me-1"></i> Holati</h5>
+                </div>
+            </div>
+            <div class="mm-card__body">
+                <div class="d-flex align-items-center gap-3 mb-3">
+                    <span>Holati:</span>
+                    {% if settings_obj.is_active %}
+                    <span class="mm-pill mm-pill--success">Yoqilgan</span>
+                    {% else %}
+                    <span class="mm-pill mm-pill--neutral">O'chirilgan</span>
+                    {% endif %}
+                </div>
+                <p class="small text-muted">
+                    Yoqilgan bo'lsa, ilova <code>GET /api/customer/app-update/?version=&lt;versiya&gt;&amp;platform=android|ios</code>
+                    so'rovi orqali joriy versiyani tekshiradi. Agar versiya "Minimal qo'llab-quvvatlanadigan versiya"dan
+                    past bo'lsa - majburiy yangilanish, "Eng so'nggi versiya"dan past bo'lsa - ixtiyoriy yangilanish
+                    taklif qilinadi.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

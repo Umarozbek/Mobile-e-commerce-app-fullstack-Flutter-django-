@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    #main { padding: 20px !important; }
+    .sherah-adashboard, .sherah-body, .sherah-dsinner { padding: 0 !important; margin: 0 !important; }
+    .sherah-table__main { width: 100% !important; }
+    .sherah-search-form { display: flex; align-items: center; background: #fff; border: 1px solid #ddd; border-radius: 8px; padding: 5px 15px; width: 300px; }
+    .sherah-search-form input { border: none; outline: none; padding: 5px; width: 100%; }
+    .referral-settings-box { display: flex; align-items: center; gap: 15px; flex-wrap: wrap; }
+    .referral-status-badge { padding: 6px 14px; border-radius: 20px; font-weight: 600; color: #fff; }
+    .referral-status-badge.active { background: #28a745; }
+    .referral-status-badge.inactive { background: #6c757d; }
+</style>
+
+<div class="sherah-adashboard sherah-show">
+    <div class="sherah-body">
+        <div class="sherah-dsinner">
+            <div class="row">
+                <div class="col-12">
+                    <div class="sherah-breadcrumb mg-top-10 d-flex justify-content-between align-items-center">
+                        <div class="sherah-breadcrumb__left">
+                            <h2 class="sherah-breadcrumb__title">Referallar Tizimi</h2>
+                            <ul class="sherah-breadcrumb__list">
+                                <li><a href="{% url 'dashboard' %}">Asosiy</a></li>
+                                <li class="active">Barcha Referallar</li>
+                            </ul>
+                        </div>
+                        <!-- SEARCH FORM -->
+                        <form action="" method="GET" class="sherah-search-form">
+                            <input type="text" name="q" placeholder="Referrer yoki Referee..." value="{{ query }}">
+                            <button type="submit" style="background:none; border:none; color:#666;"><i class="bi bi-search"></i></button>
+                            {% if query %}<a href="?"><i class="bi bi-x-circle-fill text-danger ms-2"></i></a>{% endif %}
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sherah-page-inner sherah-border sherah-default-bg mg-top-25 p-3">
+                <form action="{% url 'toggle_referral_system' %}" method="POST" class="referral-settings-box">
+                    {% csrf_token %}
+                    <span>Referral tizimi holati:
+                        <span class="referral-status-badge {% if referral_settings.referral_system_active %}active{% else %}inactive{% endif %}">
+                            {% if referral_settings.referral_system_active %}FAOL{% else %}O'CHIRILGAN{% endif %}
+                        </span>
+                    </span>
+
+                    <button type="submit" name="toggle_active" value="1"
+                        class="btn btn-sm {% if referral_settings.referral_system_active %}btn-danger{% else %}btn-success{% endif %}">
+                        {% if referral_settings.referral_system_active %}O'chirish{% else %}Yoqish{% endif %}
+                    </button>
+
+                    <label class="mb-0">Bonus summasi (won):
+                        <input type="number" name="bonus_amount" min="0" step="1"
+                               value="{{ referral_settings.bonus_amount|floatformat:'0' }}"
+                               style="width:120px;" class="form-control d-inline-block">
+                    </label>
+                    <button type="submit" class="btn btn-sm btn-primary">Saqlash</button>
+                </form>
+            </div>
+
+            <div class="sherah-table sherah-page-inner sherah-border sherah-default-bg mg-top-25">
+                <table class="sherah-table__main sherah-table__main-v3">
+                    <thead class="sherah-table__head">
+                        <tr>
+                            <th>Referrer (Taklif qilgan)</th>
+                            <th>Referee (Kelgan mijoz)</th>
+                            <th>Status</th>
+                            <th>Sana</th>
+                            <th>Amal</th>
+                        </tr>
+                    </thead>
+                    <tbody class="sherah-table__body">
+                        {% for ref in referrals %}
+                        <tr>
+                            <td><a href="{% url 'loyalty_customer_detail' ref.referrer.id %}" class="fw-bold">{{ ref.referrer.full_name }}</a></td>
+                            <td>{{ ref.referee.full_name }}</td>
+                            <td><span class="badge {% if ref.status == 'rewarded' %}bg-success{% else %}bg-warning text-dark{% endif %}">{{ ref.status }}</span></td>
+                            <td>{{ ref.created_at|date:"d.m.Y H:i" }}</td>
+                            <td>
+                                {% if ref.status == 'pending' %}
+                                    <a href="{% url 'reward_referral' ref.id %}" class="btn btn-sm btn-primary"><i class="bi bi-gift"></i> Mukofot berish</a>
+                                {% else %}
+                                    <span class="text-success fw-bold"><i class="bi bi-check-all"></i> To'langan</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr><td colspan="5" class="text-center p-5">Hech narsa topilmadi.</td></tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

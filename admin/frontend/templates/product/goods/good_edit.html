@@ -1,0 +1,421 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="pagetitle mb-4">
+    <h1 style="font-weight: 800; color: #012970;">Mahsulotni tahrirlash</h1>
+    <nav>
+        <ol class="breadcrumb mb-0">
+            <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'good-list' %}">Mahsulotlar</a></li>
+            <li class="breadcrumb-item active">#{{ good.id }} tahrirlash</li>
+        </ol>
+    </nav>
+</div>
+
+<form method="post" enctype="multipart/form-data" id="edit-product-form">
+    {% csrf_token %}
+    <input type="hidden" name="page" value="{{ page }}">
+    <input type="hidden" name="q" value="{{ q }}">
+    <div class="row">
+
+        <!-- CHAP USTUN (Nomlar va Tavsiflar) -->
+        <div class="col-lg-8">
+            <!-- 1-BLOK: Mahsulot nomlari -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title border-bottom pb-3 mb-4 text-primary">
+                        <i class="bi bi-translate me-2"></i>Mahsulot nomlari (4 tilda)
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Nomi (UZ)</label>
+                            {{ form.name_uz }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Nomi (RU)</label>
+                            {{ form.name_ru }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Nomi (EN)</label>
+                            {{ form.name_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-uppercase">Nomi (KO)</label>
+                            {{ form.name_ko }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2-BLOK: Tavsiflar -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title border-bottom pb-3 mb-4 text-primary">
+                        <i class="bi bi-card-text me-2"></i>Mahsulot tavsiflari
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Tavsif (UZ)</label>
+                            {{ form.desc_uz }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Tavsif (RU)</label>
+                            {{ form.desc_ru }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Tavsif (EN)</label>
+                            {{ form.desc_en }}
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small text-muted text-uppercase">Tavsif (KO)</label>
+                            {{ form.desc_ko }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- O'NG USTUN (Kategoriya, Narxlar, Media) -->
+        <div class="col-lg-4">
+            <!-- 3-BLOK: Logistika -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4 border-top border-4 border-info">
+                <div class="card-body p-4">
+                    <h5 class="card-title border-bottom pb-3 mb-4 text-info"><i class="bi bi-box-seam me-2"></i>Kategoriya
+                        va Tarkib</h5>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Kategoriyasi</label>
+                        {{ form.category }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Tarkibi (Ingredients)</label>
+                        {{ form.ingredients }}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Yaroqlilik muddati</label>
+                        {{ form.expire_date }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4-BLOK: Narxlar va Ombor -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4 bg-primary bg-opacity-10 border-start border-primary border-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title border-bottom border-primary border-opacity-25 pb-3 mb-4 text-primary">
+                        <i class="bi bi-currency-dollar me-2"></i>Narxlar va Ombor
+                    </h5>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Yangi narx (₩)</label>
+                            {{ form.new_price }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted">Eski narx (₩)</label>
+                            {{ form.old_price }}
+                        </div>
+                        <div class="col-12 mb-3">
+                            <label class="form-label small fw-bold text-warning">B2B (Optom) Narx (₩)</label>
+                            {{ form.b2b_price }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Vazni</label>
+                            {{ form.weight }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Zaxira soni</label>
+                            {{ form.available_quantity }}
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Birligi</label>
+                            {{ form.measure }}
+                        </div>
+                        <div class="col-12 mt-2">
+                            <div class="form-check form-switch">
+                                {{ form.active }}
+                                <label class="form-check-label fw-bold ms-2">Mahsulot faol (Active)</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5-BLOK: Media Galereya -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="card-title border-bottom pb-3 mb-4 text-primary"><i class="bi bi-images me-2"></i>Media
+                        Galereya</h5>
+
+                    <!-- O'chiriladigan rasm ID lari uchun yashirin input -->
+                    <input type="hidden" name="removed_images" id="removed_images_input" value="">
+
+                    <!-- Hozirgi rasmlar -->
+                    <div class="d-flex flex-wrap gap-3 mb-4" id="current-images-container">
+                        {% for img in good.product.images.all %}
+                        <div class="position-relative img-item-wrapper" id="img-wrapper-{{ img.id }}">
+                            <!-- Rasm ustiga bosganda showFullImage funksiyasi ishlaydi -->
+                            <img src="{{ img.image.url }}"
+                                 class="rounded shadow-sm border img-clickable"
+                                 width="80" height="80"
+                                 onclick="showFullImage('{{ img.image.url }}')"
+                                 title="Kattalashtirish uchun bosing">
+
+                            <!-- O'chirish tugmasi -->
+                            <span class="delete-img-badge shadow-sm" onclick="removeImage('{{ img.id }}')">
+            <i class="bi bi-x"></i>
+        </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- Katta ko'rinish uchun bitta dona umumiy Modal (Juda yengil) -->
+                    <div class="modal fade" id="imagePreviewModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                            <div class="modal-content border-0 bg-transparent">
+                                <div class="modal-body p-0 text-center">
+                                    <img src="" id="fullPreviewImage"
+                                         class="img-fluid rounded shadow-lg border border-3 border-white">
+                                    <button type="button"
+                                            class="btn-close btn-close-white position-absolute top-0 end-0 m-3"
+                                            data-bs-dismiss="modal"></button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mb-0">
+                        <label class="form-label fw-bold small text-uppercase mb-2 d-block text-primary">Yangi rasm
+                            qo'shish</label>
+                        {{ form.image }}
+                    </div>
+                </div>
+            </div>
+            <!-- 6-BLOK: Mahsulot variantlari -->
+            <div class="card shadow-sm border-0 rounded-4 mb-4 border-start border-4 border-success">
+                <div class="card-body p-4">
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-3 mb-4">
+                        <h5 class="card-title m-0 text-success">
+                            <i class="bi bi-stack me-2"></i>Mahsulot variantlari
+                        </h5>
+                        <a href="{% url 'add_product_child' good.pk %}?product_type={{ good.product.product_type }}"
+                           class="btn btn-success btn-sm rounded-pill px-3 fw-bold shadow-sm">
+                            <i class="bi bi-plus-circle me-1"></i> Yangi variant
+                        </a>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-variant-table">
+                            <thead class="table-light">
+                            <tr>
+                                <th>Rasm</th>
+                                <th>O'lchov / Og'irlik</th>
+                                <th>Narx</th>
+                                <th class="text-center">Holat</th>
+                                <th class="text-end">Amal</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <!-- Asosiy mahsulot (Main) -->
+                            <tr class="table-primary-light">
+                                <td>
+                                    {% with first_img=good.product.images.first %}
+                                    <img src="{{ first_img.image.url }}" class="rounded shadow-sm border" width="40"
+                                         height="40" style="object-fit: cover;">
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <div class="fw-bold">{{good.product.weight}} {{good.product.get_measure_display}}
+                                    </div>
+                                    <span class="badge bg-primary small" style="font-size: 10px;">ASOSIY</span>
+                                </td>
+                                <td class="fw-bold text-primary">{{good.product.new_price}} ₩</td>
+                                <td class="text-center">
+                                    {%if good.product.active%}<i class="bi bi-check-circle-fill text-success"></i>{%else%}<i
+                                        class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <span class="text-muted small">Tahrirlanmoqda</span>
+                                </td>
+                            </tr>
+
+                            <!-- Boshqa variantlar -->
+                            {% for variant in good.product.variants %}
+                            <tr>
+                                <td>
+                                    {% with v_img=variant.images.first %}
+                                    {% if v_img %}
+                                    <img src="{{ v_img.image.url }}" class="rounded shadow-sm border" width="40"
+                                         height="40" style="object-fit: cover;">
+                                    {% else %}
+                                    <div class="bg-light rounded border d-flex align-items-center justify-content-center"
+                                         style="width: 40px; height: 40px;"><i class="bi bi-image text-muted"></i></div>
+                                    {% endif %}
+                                    {% endwith %}
+                                </td>
+                                <td>
+                                    <div class="fw-semibold">{{variant.weight}} {{variant.get_measure_display}}
+                                    </div>
+                                </td>
+                                <td class="text-primary">{{variant.new_price}} ₩</td>
+                                <td class="text-center">
+                                    {% if variant.active %}<i class="bi bi-check-circle-fill text-success"></i>{%else%}<i class="bi bi-x-circle-fill text-danger"></i>{% endif %}
+                                </td>
+                                <td class="text-end">
+                                    <!-- Variantni tahrirlash (Agar u ham Good bo'lsa) -->
+                                    {% if variant.goods %}
+                                    <a href="{% url 'edit-delete-good' variant.goods.id %}?page={{ page }}"
+                                       class="btn btn-sm btn-outline-primary rounded-circle">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% if not good.product.variants %}
+                    <div class="text-center py-3 text-muted small italic">
+                        Boshqa variantlar mavjud emas.
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PASTDAGI ACTION BAR -->
+    <div class="card shadow-lg border-0 rounded-4 mb-5">
+        <div class="card-body p-3 d-flex justify-content-between align-items-center">
+            <button type="button" class="btn btn-outline-secondary rounded-pill px-4" onclick="goBack()">
+                <a href="{% url 'good-list' %}?page={{ page }}{% if q %}&q={{ q }}{% endif %}">
+                    <i class="bi bi-arrow-left me-1"></i> Ortga qaytish
+                </a>
+            </button>
+            <div class="d-flex gap-2">
+                <button type="button" class="btn btn-danger bg-opacity-10 text-danger border-danger rounded-pill px-4"
+                        data-bs-toggle="modal" data-bs-target="#deleteConfirmModal">
+                    <i class="bi bi-trash me-1"></i> O'chirish
+                </button>
+                <button type="submit" class="btn btn-primary rounded-pill px-5 fw-bold shadow-lg" name="edit">
+                    <i class="bi bi-save me-1"></i> Saqlash
+                </button>
+            </div>
+        </div>
+    </div>
+</form>
+
+<!-- MODAL: O'chirishni tasdiqlash -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 rounded-4 shadow">
+            <div class="modal-body text-center p-5">
+                <div class="mb-3 text-danger"><i class="bi bi-exclamation-triangle" style="font-size: 4rem;"></i></div>
+                <h4 class="fw-bold mb-3">Ishonchingiz komilmi?</h4>
+                <p class="text-muted">Ushbu mahsulot butunlay o'chiriladi. Bu amalni ortga qaytarib bo'lmaydi!</p>
+                <div class="d-flex justify-content-center gap-3 mt-4 pt-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor qilish
+                    </button>
+                    <form method="post" action="{% url 'delete_good' good.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger rounded-pill px-4 fw-bold">Ha, o'chirilsin</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+
+    .img-clickable {
+        cursor: zoom-in;
+        transition: all 0.3s ease-in-out;
+        object-fit: cover;
+    }
+
+    /* Mishka ustiga kelganda effekt */
+    .img-clickable:hover {
+        transform: scale(1.15); /* Biroz kattalashadi */
+        z-index: 10;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2) !important;
+        border-color: #4154f1 !important;
+    }
+
+    /* O'chirish tugmasi har doim rasm ustida ko'rinishi uchun */
+    .img-item-wrapper:hover .delete-img-badge {
+        z-index: 11;
+    }
+    /* Sherah Form Input Styles */
+    .sherah-wc__form-input {
+        width: 100%;
+        padding: 12px 15px;
+        border: 1px solid #dce1e5;
+        border-radius: 12px;
+        background-color: #fbfbfb;
+        transition: all 0.3s ease;
+        font-size: 14px;
+        color: #333;
+    }
+    .sherah-wc__form-input:focus {
+        border-color: #4154f1;
+        background-color: #fff;
+        box-shadow: 0 0 0 4px rgba(65, 84, 241, 0.08);
+        outline: none;
+    }
+    textarea.sherah-wc__form-input { min-height: 100px; resize: vertical; }
+
+    /* Image removal badge */
+    .img-item-wrapper { transition: 0.3s; }
+    .delete-img-badge {
+        position: absolute;
+        top: -8px;
+        right: -8px;
+        background: #ef4444;
+        color: white;
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 14px;
+        border: 2px solid #fff;
+        transition: 0.2s;
+    }
+    .delete-img-badge:hover { background: #dc2626; transform: scale(1.1); }
+
+    .card-title { font-weight: 700; color: #012970; }
+    .form-label { font-size: 0.8rem; letter-spacing: 0.5px; }
+    .btn-primary { background: #4154f1; border-color: #4154f1; }
+    .btn-primary:hover { background: #3644cc; transform: translateY(-1px); }
+</style>
+
+<script>
+    function showFullImage(imageUrl) {
+        // Modal ichidagi rasmga SRC ni o'rnatamiz
+        document.getElementById('fullPreviewImage').src = imageUrl;
+        // Modalni ochamiz
+        var myModal = new bootstrap.Modal(document.getElementById('imagePreviewModal'));
+        myModal.show();
+    }
+    function goBack() { window.history.back(); }
+
+    let removedImages = [];
+    function removeImage(imgId) {
+        // 1. Vizual o'chirish
+        const wrapper = document.getElementById('img-wrapper-' + imgId);
+        if (wrapper) {
+            wrapper.classList.add('opacity-0');
+            setTimeout(() => { wrapper.remove(); }, 300);
+        }
+
+        // 2. ID ni ro'yxatga qo'shish va inputni yangilash
+        removedImages.push(imgId);
+        document.getElementById('removed_images_input').value = removedImages.join(',');
+
+        console.log("Deleted IDs:", document.getElementById('removed_images_input').value);
+    }
+</script>
+
+{% endblock %}

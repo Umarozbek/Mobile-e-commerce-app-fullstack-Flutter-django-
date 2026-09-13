@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Yetkazib berish narxi</h1>
+        <p>Og'irlikka asoslangan pochta narxi sozlamalari</p>
+    </div>
+</div>
+
+<div class="mm-card mb-4">
+    <div class="mm-card__header">
+        <div>
+            <h5 class="mm-card__title"><i class="bi bi-gear me-1"></i> 20 kg uchun narx</h5>
+            <div class="mm-card__subtitle">Bu — bitta admin sozlamasi. Og'irlik qadami (20 kg) tizimda FIKS, admin faqat narxni kiritadi.</div>
+        </div>
+    </div>
+    <div class="mm-card__body">
+        <div class="row g-4">
+            <div class="col-lg-5">
+                <form action="{% url 'update-shipping-settings' %}" method="POST">
+                    {% csrf_token %}
+                    <label class="form-label fw-bold" style="color:var(--mm-heading);">20 kg uchun yetkazib berish narxi</label>
+                    <div class="input-group input-group-lg mb-2">
+                        <span class="input-group-text bg-white fw-bold">&#8361;</span>
+                        <input type="number" step="1" min="0" name="base_fee" class="form-control"
+                               value="{{ shipping_settings.base_fee|floatformat:'0' }}" required>
+                    </div>
+                    <div class="form-text mb-3">
+                        Har 20 kg (yoki uning bir qismi) uchun shu summa olinadi. Yuk og'irligiga qarab
+                        tizim kerakli 20&nbsp;kg blok sonini avtomatik hisoblab, shu narxga ko'paytiradi.
+                        Og'irlik qadamining o'zi (20 kg) o'zgartirilmaydi.
+                    </div>
+                    <button type="submit" class="btn btn-primary rounded-pill px-4">
+                        <i class="bi bi-check2 me-1"></i> Saqlash
+                    </button>
+                </form>
+            </div>
+
+            <div class="col-lg-7">
+                <div class="mm-rule-box">
+                    <div class="mm-card__subtitle mb-2" style="font-weight:700; text-transform:uppercase; font-size:0.72rem; letter-spacing:.04em;">
+                        Joriy narx bilan hisoblanadi
+                    </div>
+                    <div class="mm-rule-box__step">
+                        <span class="mm-pill mm-pill--success">0&ndash;20 kg</span>
+                        <span>&rarr; <b>1</b> &times; {{ shipping_settings.base_fee|floatformat:'0' }} &#8361; = <b>{{ shipping_settings.base_fee|floatformat:'0' }} &#8361;</b></span>
+                    </div>
+                    <div class="mm-rule-box__step">
+                        <span class="mm-pill mm-pill--info">20.01&ndash;40 kg</span>
+                        <span>&rarr; <b>2</b> &times; {{ shipping_settings.base_fee|floatformat:'0' }} &#8361; = <b>{% widthratio shipping_settings.base_fee 1 2 %} &#8361;</b></span>
+                    </div>
+                    <div class="mm-rule-box__step">
+                        <span class="mm-pill mm-pill--warning">40.01&ndash;60 kg</span>
+                        <span>&rarr; <b>3</b> &times; {{ shipping_settings.base_fee|floatformat:'0' }} &#8361; = <b>{% widthratio shipping_settings.base_fee 1 3 %} &#8361;</b></span>
+                    </div>
+                    <div class="mm-rule-box__step" style="opacity:.7;">
+                        <span class="mm-pill mm-pill--neutral">60.01&ndash;80 kg</span>
+                        <span>&rarr; <b>4</b> &times; narx ... va hokazo</span>
+                    </div>
+                </div>
+                <div class="small text-muted mt-2">
+                    <i class="bi bi-info-circle me-1"></i>
+                    Formula: <code>shipping_fee = ceil(jami og'irlik &divide; 20) &times; narx</code>.
+                    Bu qiymatlar hozirgi bazadagi narxdan avtomatik hisoblab ko'rsatilmoqda &mdash; hech narsa qattiq kodlanmagan.
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="mm-card">
+    <div class="mm-card__header">
+        <div>
+            <h5 class="mm-card__title">Tizim tomonidan yaratilgan narx yozuvlari</h5>
+            <div class="mm-card__subtitle">Har bir yozuv &mdash; muayyan og'irlik uchun avvalroq hisoblangan narx. Buyurtmalar shu yozuvlarga bog'langan.</div>
+        </div>
+    </div>
+    <div class="mm-card__body p-0">
+        <div class="alert alert-warning border-0 rounded-0 mb-0 small py-2 px-4">
+            <i class="bi bi-exclamation-triangle me-1"></i>
+            Diqqat: bu yozuvni tahrirlash unga bog'langan <strong>eski buyurtmalarning</strong> ko'rsatilgan narxini ham o'zgartiradi.
+            Yangi narxni belgilash uchun yuqoridagi &laquo;20 kg uchun narx&raquo; formasidan foydalaning &mdash; bu yerni tahrirlamang.
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 text-center">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3"># ID</th>
+                        <th class="py-3 text-start ps-5">Narx</th>
+                        <th class="py-3">Yaratilgan vaqt</th>
+                        <th class="py-3">Amal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in services %}
+                    <tr>
+                        <td class="text-muted fw-bold">#{{ s.id }}</td>
+                        <td class="text-start ps-5">
+                            <span class="fs-6 fw-bold text-primary">{{ s.delivery_fee }} ₩</span>
+                        </td>
+                        <td class="small text-muted">{{ s.created|date:"d.m.Y | H:i" }}</td>
+                        <td>
+                            <a href="{% url 'delivery-fee-edit' s.id %}" class="mm-btn-icon" title="Ehtiyot bo'ling: eski buyurtmalarga ta'sir qiladi">
+                                <i class="bi bi-pencil-square"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4">
+                            <div class="mm-empty">
+                                <i class="bi bi-truck"></i>
+                                <strong>Hali narx yozuvi yo'q</strong>
+                                <span class="small">Birinchi buyurtma savatdan chiqqanda avtomatik yaratiladi</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

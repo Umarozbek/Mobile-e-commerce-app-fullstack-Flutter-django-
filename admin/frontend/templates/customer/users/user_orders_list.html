@@ -1,0 +1,262 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    /* Google Sheets + Dashboard Unified Style */
+    .sheets-card {
+        background: #fff;
+        border-radius: 8px;
+        border: 1px solid #cbd5e1;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    }
+
+    .sheets-table {
+        width: 100%;
+        border-collapse: collapse !important;
+    }
+
+    /* Sarlavha qismi */
+    .sheets-table thead th {
+        background-color: #f1f5f9 !important;
+        color: #475569 !important;
+        font-weight: 700 !important;
+        font-size: 12px !important;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 15px !important;
+        border: 1px solid #cbd5e1 !important;
+        text-align: center;
+    }
+
+    /* Katakchalar */
+    .sheets-table tbody td {
+        padding: 10px 15px !important;
+        border: 1px solid #e2e8f0 !important;
+        font-size: 13px;
+        color: #1e293b;
+        vertical-align: middle;
+    }
+
+    .sheets-table tbody tr:hover {
+        background-color: #f8fafc !important;
+    }
+
+    /* Excel ID ustuni */
+    .col-id {
+        background: #f8fafc;
+        font-weight: bold;
+        width: 60px;
+        text-align: center;
+        color: #64748b;
+        border-right: 2px solid #cbd5e1 !important;
+    }
+
+    /* Status Select Dizayni */
+    .status-select-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        justify-content: center;
+    }
+
+    .status-select {
+        padding: 6px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: 800;
+        text-transform: uppercase;
+        border: 1px solid transparent;
+        cursor: pointer;
+        width: 100%;
+        outline: none;
+        transition: all 0.2s;
+    }
+
+    /* Status Ranglari */
+    .sel-pending { background-color: #fef9c3; color: #854d0e; border-color: #fde047; }
+    .sel-approved { background-color: #dcfce7; color: #166534; border-color: #86efac; }
+    .sel-sent { background-color: #ede9fe; color: #5b21b6; border-color: #ddd6fe; }
+    .sel-cancel { background-color: #fee2e2; color: #991b1b; border-color: #fecaca; }
+
+    .btn-save-mini {
+        background-color: #10b981;
+        color: white;
+        border: none;
+        padding: 6px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+    .btn-save-mini:hover { background-color: #059669; }
+
+    .avatar-mini {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 12px;
+        font-weight: bold;
+        color: #475569;
+    }
+</style>
+
+<div class="pagetitle mb-4">
+    <h1 style="font-weight: 700; color: #012970;">Buyurtmalar Boshqaruvi</h1>
+    <nav>
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/">Bosh sahifa</a></li>
+            <li class="breadcrumb-item active">Barcha Buyurtmalar</li>
+        </ol>
+    </nav>
+</div>
+
+<section class="section">
+    <!-- Qidiruv va Filtr -->
+    <div class="row mb-3">
+        <div class="col-md-5">
+            <form method="get" class="d-flex shadow-sm" style="border-radius: 6px; overflow: hidden;">
+                <input type="text" name="q" class="form-control border-0" value="{{ request.GET.q|default:'' }}"
+                       placeholder="ID yoki mijoz nomi..." style="font-size: 14px; padding: 10px 15px;">
+                <button class="btn btn-primary rounded-0" type="submit border-0"><i class="bi bi-search"></i></button>
+            </form>
+        </div>
+    </div>
+
+    <!-- JADVAL -->
+    <div class="sheets-card">
+        <div class="table-responsive">
+            <table class="sheets-table">
+                <thead>
+                <tr>
+                    <th># ID</th>
+                    <th>Mijoz</th>
+                    <th>Sana va Vaqt</th>
+                    <th>Manzil</th>
+                    <th style="width: 120px;">Summa</th>
+                    <th style="width: 220px;">Buyurtma Holati</th>
+                    <th style="width: 80px;">Batafsil</th>
+                </tr>
+                </thead>
+                <tbody>
+                {% for c in orders %}
+                <tr>
+                    <td class="col-id">#{{ c.order_number }}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            <div class="avatar-mini me-2">
+                                {{ c.user.full_name|slice:":1" }}
+                            </div>
+                            <span class="fw-bold text-dark">{{ c.user.full_name }}</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <span class="text-dark small fw-bold">{{ c.created_at|date:"d.m.Y" }}</span><br>
+                        <span class="text-muted" style="font-size: 11px;">{{ c.created_at|date:"H:i" }}</span>
+                    </td>
+                    <td>
+                        <div class="text-truncate small" style="max-width: 180px;"
+                             title="{{ c.user.location.first.address }}">
+                            {% if c.user.location.exists %}
+                            <i class="bi bi-geo-alt-fill text-danger"></i> {{ c.user.location.first.address }}
+                            {% else %}
+                            <span class="text-muted italic">Manzil kiritilmagan</span>
+                            {% endif %}
+                        </div>
+                    </td>
+                    <td class="text-center fw-bold text-primary">
+                        {{ c.total_amount }} ₩
+                    </td>
+                    <td>
+                        <form method="post" action="{% url 'update-order-status' c.id %}" class="status-select-wrapper">
+                            {% csrf_token %}
+                            <select name="status" class="status-select
+                                    {% if c.status == 'pending' %}sel-pending
+                                    {% elif c.status == 'approved' %}sel-approved
+                                    {% elif c.status == 'sent' %}sel-sent
+                                    {% elif c.status == 'cancelled' %}sel-cancel{% endif %}"
+                                    onchange="updateSelectClass(this)">
+                                {% for choice_value, choice_label in c.STATUS_CHOICES %}
+                                {% if choice_value != 'in_cart' %}
+                                <option value="{{ choice_value }}" {% if c.status == choice_value %}selected{% endif %}>
+                                    {{ choice_label|upper }}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                            <button type="submit" class="btn-save-mini" title="Saqlash">
+                                <i class="bi bi-check-lg"></i>
+                            </button>
+                        </form>
+                    </td>
+                    <td class="text-center">
+                        <a href="{% url 'user-order-detail' c.id %}" class="btn btn-sm btn-outline-primary"
+                           style="padding: 2px 8px;">
+                            <i class="bi bi-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center p-5 text-muted fst-italic">Hech qanday buyurtma topilmadi.</td>
+                </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if page_obj.has_other_pages %}
+    <nav class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item"><a class="page-link"
+                                     href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"><i
+                    class="bi bi-chevron-left"></i></a></li>
+            {% endif %}
+            <li class="page-item active"><span class="page-link px-4">{{ page_obj.number }}</span></li>
+            {% if page_obj.has_next %}
+            <li class="page-item"><a class="page-link"
+                                     href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}"><i
+                    class="bi bi-chevron-right"></i></a></li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</section>
+
+<script>
+    // Dinamik ravishda status rangini o'zgartirish
+    function updateSelectClass(selectElement) {
+        const val = selectElement.value;
+        // Eski klasslarni tozalash
+        selectElement.classList.remove('sel-pending', 'sel-approved', 'sel-sent', 'sel-cancel');
+
+        // Yangi klass qo'shish
+        if (val === 'pending') selectElement.classList.add('sel-pending');
+        else if (val === 'approved') selectElement.classList.add('sel-approved');
+        else if (val === 'sent') selectElement.classList.add('sel-sent');
+        else if (val === 'cancelled') selectElement.classList.add('sel-cancel');
+    }
+</script>
+
+<style>
+    /* Pagination Stillari */
+    .pagination .page-link {
+        border-radius: 4px;
+        margin: 0 3px;
+        color: #4154f1;
+        border: 1px solid #cbd5e1;
+    }
+    .pagination .page-item.active .page-link {
+        background: #4154f1;
+        color: white;
+        border-color: #4154f1;
+    }
+</style>
+{% endblock %}

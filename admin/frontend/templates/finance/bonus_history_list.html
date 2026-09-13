@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="mm-page-head">
+    <div>
+        <h1>Bonus tarixi</h1>
+        <p>Buyurtma yakunlanganda mijozlarga berilgan bonuslar ro'yxati</p>
+    </div>
+    <a href="{% url 'bonus-tier-list' %}" class="btn btn-outline-primary rounded-pill px-4">
+        <i class="bi bi-gear me-1"></i> Bonus sozlamalari
+    </a>
+</div>
+
+<div class="mm-card">
+    <div class="mm-card__body">
+        <div class="mm-toolbar">
+            <form method="get" class="mm-search">
+                <i class="bi bi-search"></i>
+                <input type="text" name="q" value="{{ query }}" placeholder="Mijoz yoki buyurtma bo'yicha qidirish...">
+            </form>
+            {% if query %}<a href="{% url 'bonus-tier-history' %}" class="mm-pill mm-pill--neutral text-decoration-none">Tozalash <i class="bi bi-x"></i></a>{% endif %}
+        </div>
+
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="py-3">Mijoz</th>
+                        <th class="py-3">Buyurtma</th>
+                        <th class="py-3 text-center">Buyurtma summasi</th>
+                        <th class="py-3 text-center">Berilgan bonus</th>
+                        <th class="py-3 text-center">Holati</th>
+                        <th class="py-3 text-center">Sana</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for b in bonuses %}
+                    <tr>
+                        <td class="fw-semibold">{{ b.profile.full_name }}</td>
+                        <td>{{ b.order_name }}</td>
+                        <td class="text-center">{{ b.order_amount|floatformat:'0' }} ₩</td>
+                        <td class="text-center fw-bold text-primary">{{ b.bonus_amount|floatformat:'0' }} ₩</td>
+                        <td class="text-center">
+                            {% if b.status == 'approved' %}
+                            <span class="mm-pill mm-pill--success">Berilgan</span>
+                            {% else %}
+                            <span class="mm-pill mm-pill--warning">Kutilmoqda</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-center small text-muted">{{ b.created_at|date:"d.m.Y H:i" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="mm-empty">
+                                <i class="bi bi-clock-history"></i>
+                                <strong>Hali bonus berilmagan</strong>
+                                <span class="small">Buyurtma yakunlanib, mos pog'ona topilganda shu yerda ko'rinadi</span>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if page_obj.has_other_pages %}
+        <nav class="mt-4">
+            <ul class="pagination pagination-sm justify-content-center">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if query %}&q={{ query }}{% endif %}">&laquo;</a></li>
+                {% endif %}
+                <li class="page-item active"><span class="page-link">{{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span></li>
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if query %}&q={{ query }}{% endif %}">&raquo;</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

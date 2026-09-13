@@ -1,0 +1,206 @@
+{% extends 'base.html' %}
+{% block content %}
+{% load static %}
+
+<div class="row">
+    <div class="col-lg-12">
+        <div class="card shadow-sm">
+            <div class="card-body">
+
+                <!-- 1. SARLAVHA VA TUGMALAR -->
+                <div class="d-flex justify-content-between align-items-center py-3">
+                    <h5 class="card-title mb-0" style="font-weight: 700; color: #012970;">Oziq-ovqat mahsulotlari</h5>
+                    <div class="d-flex gap-2">
+                        <!-- Bulk Delete Tugmasi -->
+                        <button type="button" id="bulk-delete-btn" class="btn btn-danger rounded-pill px-4 d-none shadow-sm" data-bs-toggle="modal" data-bs-target="#bulkDeleteModal">
+                            <i class="bi bi-trash"></i> Tanlanganlarni o'chirish
+                        </button>
+                        <a href="{% url 'good_create' %}" class="btn btn-success rounded-pill px-4 shadow-sm">
+                            <i class="bi bi-plus-lg"></i> Mahsulot yaratish
+                        </a>
+                    </div>
+                </div>
+
+                <!-- 2. QIDIRUV VA SHOW ENTRIES -->
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        <form method="get" action="." class="d-flex align-items-center gap-3" id="search-form">
+                            <!-- Entries selection -->
+                            <div class="d-flex align-items-center gap-2">
+                                <label class="mb-0 small text-muted fw-bold">Ko'rsatish:</label>
+                                <select name="per_page" class="form-select form-select-sm" onchange="this.form.submit()" style="width: auto; border-radius: 8px;">
+                                    <option value="10" {% if request.GET.per_page == '10' %}selected{% endif %}>10</option>
+                                    <option value="25" {% if request.GET.per_page == '25' or not request.GET.per_page %}selected{% endif %}>25</option>
+                                    <option value="50" {% if request.GET.per_page == '50' %}selected{% endif %}>50</option>
+                                    <option value="100" {% if request.GET.per_page == '100' %}selected{% endif %}>100</option>
+                                </select>
+                            </div>
+
+                            <!-- Search input -->
+                            <div class="input-group shadow-sm" style="border-radius: 10px; overflow: hidden; max-width: 450px;">
+                                <span class="input-group-text bg-white border-0"><i class="bi bi-search text-muted"></i></span>
+                                <input type="text" class="form-control border-0 ps-0" name="q" value="{{ request.GET.q|default:'' }}" placeholder="Qidirish...">
+                                <button class="btn btn-primary px-4 border-0" type="submit">Qidirish</button>
+                                {% if request.GET.q or request.GET.per_page %}
+                                    <a href="?" class="btn btn-light border-0 d-flex align-items-center text-danger" title="Tozalash"><i class="bi bi-x-lg"></i></a>
+                                {% endif %}
+                            </div>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- 3. JADVAL -->
+                <form id="bulk-delete-form" method="post" action="{% url 'bulk_delete_goods' %}">
+                    {% csrf_token %}
+                    <!-- Holatni saqlash -->
+                    <input type="hidden" name="page" value="{{ page_obj.number }}">
+                    <input type="hidden" name="q" value="{{ request.GET.q|default:'' }}">
+                    <input type="hidden" name="per_page" value="{{ request.GET.per_page|default:'' }}">
+
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle custom-table">
+                            <thead class="table-light">
+                            <tr>
+                                <th class="text-center" style="width: 40px;"><input type="checkbox" id="select-all" class="form-check-input border-dark"></th>
+                                <th class="text-center">#</th>
+                                <th>Mahsulot</th>
+                                <th class="text-center">Kategoriya</th>
+                                <th class="text-center">Narxi</th>
+                                <th class="text-center">Vazni</th>
+                                <th class="text-center">Omborda</th>
+                                <th class="text-center">Holat</th>
+                                <th class="text-center">Amallar</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for good in page_obj %}
+                            <tr>
+                                <td class="text-center"><input type="checkbox" name="selected_ids" value="{{ good.id }}" class="form-check-input good-checkbox border-dark"></td>
+                                <td class="text-center fw-bold text-muted">{{ forloop.counter0|add:page_obj.start_index }}</td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        {% with first_img=good.product.images.first %}
+                                        <img src="{% if first_img %}{{ first_img.image.url }}{% else %}{% static 'assets/img/no-image.png' %}{% endif %}" class="rounded shadow-sm me-2" width="45" height="45" style="object-fit: cover;">
+                                        {% endwith %}
+                                        <span class="fw-bold text-dark small">{{ good.name_uz }}</span>
+                                    </div>
+                                </td>
+                                <td class="text-center"><span class="badge bg-info text-dark bg-opacity-10 px-3">{{ good.category.name_uz }}</span></td>
+                                <td class="text-center fw-bold text-primary">{{ good.product.new_price }} ₩</td>
+                                <td class="text-center fw-bold text-primary">{{ good.product.weight }}</td>
+                                <td class="text-center"><span class="text-dark">{{ good.product.available_quantity }}</span> <small class="text-muted">{{ good.product.get_measure_display }}</small></td>
+                                <td class="text-center">
+                                    {% if good.product.active %}<span class="badge bg-success-light text-success px-3">Faol</span>{% else %}<span class="badge bg-danger-light text-danger px-3">Nofaol</span>{% endif %}
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <!-- Edit -->
+                                        <a href="{% url 'edit-delete-good' good.id %}?page={{ page_obj.number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}" class="btn btn-outline-primary btn-sm rounded-pill px-3"><i class="bi bi-pencil-square"></i></a>
+
+                                        <!-- Single Delete Button -->
+                                        <button type="button" class="btn btn-outline-danger btn-sm rounded-pill px-3" data-bs-toggle="modal" data-bs-target="#deleteModal{{ good.id }}"><i class="bi bi-trash"></i></button>
+                                    </div>
+
+                                    <!-- Single Delete Modal (Tog'irlangan form bilan) -->
+                                    <div class="modal fade" id="deleteModal{{ good.id }}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered">
+                                            <div class="modal-content border-0 shadow">
+                                                <div class="modal-header bg-danger text-white border-0 py-2"><h5 class="modal-title fs-6">O'chirishni tasdiqlash</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button></div>
+                                                <div class="modal-body p-4 text-start">Haqiqatan ham <strong>{{ good.name_uz }}</strong> mahsulotini o'chirmoqchimisiz?</div>
+                                                <div class="modal-footer border-0">
+                                                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">Bekor qilish</button>
+                                                    <form method="post" action="{% url 'delete_good' good.id %}" class="d-inline">
+                                                        {% csrf_token %}
+                                                        <input type="hidden" name="page" value="{{ page_obj.number }}">
+                                                        <input type="hidden" name="q" value="{{ request.GET.q|default:'' }}">
+                                                        <input type="hidden" name="per_page" value="{{ request.GET.per_page|default:'' }}">
+                                                        <button type="submit" class="btn btn-danger rounded-pill px-4">Ha, o'chirilsin</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- BULK DELETE CONFIRMATION MODAL -->
+                    <div class="modal fade" id="bulkDeleteModal" tabindex="-1" aria-hidden="true">
+                        <div class="modal-dialog modal-dialog-centered modal-sm">
+                            <div class="modal-content border-0 shadow">
+                                <div class="modal-body p-4 text-center">
+                                    <i class="bi bi-exclamation-circle text-danger fs-1 mb-3"></i>
+                                    <p class="fw-bold">Tanlangan barcha mahsulotlar o'chiriladi. Ishonchingiz komilmi?</p>
+                                    <div class="d-flex justify-content-center gap-2 mt-3">
+                                        <button type="button" class="btn btn-light rounded-pill px-3" data-bs-dismiss="modal">Yo'q</button>
+                                        <button type="submit" form="bulk-delete-form" class="btn btn-danger rounded-pill px-3">Ha, o'chirilsin</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- 4. PAGINATSIYA -->
+                {% if page_obj.has_other_pages %}
+                <nav class="mt-4">
+                    <ul class="pagination justify-content-center align-items-center">
+                        {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">&laquo;</a></li>
+                        {% endif %}
+
+                        {% for num in page_obj.paginator.page_range %}
+                            {% if page_obj.number == num %}
+                                <li class="page-item active"><span class="page-link px-3">{{ num }}</span></li>
+                            {% elif num > page_obj.number|add:'-4' and num < page_obj.number|add:'4' %}
+                                <li class="page-item"><a class="page-link px-3" href="?page={{ num }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">{{ num }}</a></li>
+                            {% endif %}
+                        {% endfor %}
+
+                        {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}{% if request.GET.per_page %}&per_page={{ request.GET.per_page }}{% endif %}">&raquo;</a></li>
+                        {% endif %}
+                    </ul>
+                    <div class="text-center mt-2"><small class="text-muted">Sahifa {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</small></div>
+                </nav>
+                {% endif %}
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Checkbox JS
+    const selectAll = document.getElementById('select-all');
+    const checkboxes = document.querySelectorAll('.good-checkbox');
+    const bulkBtn = document.getElementById('bulk-delete-btn');
+
+    function toggleBulkBtn() {
+        const checkedCount = document.querySelectorAll('.good-checkbox:checked').length;
+        if (checkedCount > 0) bulkBtn.classList.remove('d-none');
+        else bulkBtn.classList.add('d-none');
+    }
+
+    if(selectAll){
+        selectAll.addEventListener('change', function() {
+            checkboxes.forEach(cb => cb.checked = selectAll.checked);
+            toggleBulkBtn();
+        });
+    }
+
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', toggleBulkBtn);
+    });
+</script>
+
+<style>
+    .bg-success-light { background-color: #e1f7ec; color: #0d9488; border-radius: 50px; }
+    .bg-danger-light { background-color: #fee2e2; color: #dc2626; border-radius: 50px; }
+    .pagination .page-link { border-radius: 8px; margin: 0 3px; color: #4154f1; border: 1px solid #dee2e6; }
+    .pagination .page-item.active .page-link { background: #4154f1; color: white; border-color: #4154f1; }
+</style>
+{% endblock %}
