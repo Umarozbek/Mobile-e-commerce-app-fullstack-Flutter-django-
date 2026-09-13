@@ -13,20 +13,15 @@ pip install -r requirements.txt
 python manage.py migrate
 python manage.py collectstatic --no-input
 
-# DJANGO_SUPERUSER_USERNAME/PASSWORD Render Environment'da o'rnatilgan
-# bo'lsa - shu nomdagi admin mavjud bo'lmasa avtomatik yaratadi.
-# Xavfsiz: allaqachon mavjud bo'lsa hech narsa qilmaydi, build'ni
-# to'xtatmaydi (Shell'ga kirish shart emas).
+# 'admin' mavjud bo'lmasa avtomatik yaratadi - Shell'ga kirish shart emas.
+# ESLATMA: parol shu faylda ochiq matnda (GitHub'da hamma ko'radi) -
+# birinchi kirishdan keyin darhol /dashboard/ orqali o'zgartiring.
 python manage.py shell -c "
-import os
 from django.contrib.auth import get_user_model
 User = get_user_model()
-username = os.getenv('DJANGO_SUPERUSER_USERNAME')
-password = os.getenv('DJANGO_SUPERUSER_PASSWORD')
-email = os.getenv('DJANGO_SUPERUSER_EMAIL', '')
-if username and password and not User.objects.filter(username=username).exists():
-    User.objects.create_superuser(username=username, password=password, email=email)
-    print('Superuser created:', username)
+if not User.objects.filter(username='admin').exists():
+    User.objects.create_superuser(username='admin', password='123456', email='admin@example.com')
+    print('Superuser created: admin')
 "
 
 # MANA SHU QATORLARNI QO'SHING:
