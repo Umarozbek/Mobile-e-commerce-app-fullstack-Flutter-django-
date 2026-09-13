@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.views.static import serve
 from django.shortcuts import redirect
@@ -20,7 +21,15 @@ def redirect_dashboard(request):
     return redirect("dashboard")
 
 
+def healthz(request):
+    """Render's Health Check Path - no auth, no DB, no dependencies.
+    Just proves the process is up and serving requests."""
+    return HttpResponse("ok")
+
+
 urlpatterns = [
+    path("healthz/", healthz, name="healthz"),
+
     # API lar
     path("api/customer/", include("apps.customer.urls")),
     path("api/product/", include("apps.product.urls")),
