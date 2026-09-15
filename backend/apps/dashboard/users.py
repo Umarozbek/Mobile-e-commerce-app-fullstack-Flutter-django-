@@ -1,7 +1,7 @@
 from decimal import Decimal, InvalidOperation
 
 from apps.customer.models import Profile, Location, B2BApplication, News
-from apps.merchant.models import Order, OrderItem, Service, BankCardModel, ShippingSettings, OrderBonusTier, LoyaltyPendingBonus, TelegramSettings
+from apps.merchant.models import Order, OrderItem, Service, BankCardModel, ShippingSettings, OrderBonusTier, LoyaltyPendingBonus, TelegramSettings, AppUpdateSettings
 from django.contrib import messages
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, redirect, HttpResponse
@@ -262,7 +262,7 @@ def update_order_status(request, pk):
 
 from django.shortcuts import render, redirect
 from django.contrib.auth import authenticate, login, logout
-from .forms import LoginForm, BankCardForm, ServiceForm, OrderBonusTierForm, TelegramSettingsForm, PushComposeForm
+from .forms import LoginForm, BankCardForm, ServiceForm, OrderBonusTierForm, TelegramSettingsForm, PushComposeForm, AppUpdateSettingsForm
 from django.contrib import messages
 
 
@@ -508,6 +508,24 @@ def telegram_settings_view(request):
         'form': form,
         'settings_obj': settings_obj,
         'has_token': bool(settings_obj.bot_token),
+    })
+
+
+def app_update_settings_view(request):
+    settings_obj = AppUpdateSettings.get_solo()
+
+    if request.method == 'POST':
+        form = AppUpdateSettingsForm(request.POST, instance=settings_obj)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Ilova yangilanish sozlamalari saqlandi.")
+            return redirect('app-update-settings')
+    else:
+        form = AppUpdateSettingsForm(instance=settings_obj)
+
+    return render(request, 'dashboard/settings/app_update.html', {
+        'form': form,
+        'settings_obj': settings_obj,
     })
 
 

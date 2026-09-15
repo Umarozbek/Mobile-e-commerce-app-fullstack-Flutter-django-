@@ -467,6 +467,35 @@ class TelegramSettings(models.Model):
         return [line.strip() for line in (self.chat_ids or "").splitlines() if line.strip()]
 
 
+class AppUpdateSettings(models.Model):
+    """Singleton: mobil ilova versiyasini majburiy/ixtiyoriy yangilash sozlamalari.
+
+    is_active=False bo'lsa, /api/customer/app-update/ hech qanday
+    yangilanish talab qilmaydi (funksiya to'liq o'chirilgan holatda ishlaydi).
+    """
+    is_active = models.BooleanField(default=False)
+    min_supported_version = models.CharField(
+        max_length=20, blank=True, default="",
+        help_text="Bu versiyadan past bo'lgan ilovalar majburiy yangilanishga yo'naltiriladi (masalan: 1.2.0)"
+    )
+    latest_version = models.CharField(
+        max_length=20, blank=True, default="",
+        help_text="Eng so'nggi mavjud versiya (ixtiyoriy 'yangilanish mavjud' xabari uchun)"
+    )
+    title = models.CharField(max_length=255, blank=True, default="")
+    message = models.TextField(blank=True, default="")
+    android_store_url = models.URLField(blank=True, default="")
+    ios_store_url = models.URLField(blank=True, default="")
+
+    def __str__(self) -> str:
+        return f"AppUpdateSettings (active={self.is_active}, min={self.min_supported_version}, latest={self.latest_version})"
+
+    @classmethod
+    def get_solo(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+
 class ReferralSettings(models.Model):
     """Singleton: referral tizimi uchun global sozlamalar."""
     referral_system_active = models.BooleanField(default=False)

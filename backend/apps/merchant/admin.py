@@ -141,6 +141,17 @@ class ReferralSettingsAdmin(admin.ModelAdmin):
         return False
 
 
+@admin.register(AppUpdateSettings)
+class AppUpdateSettingsAdmin(admin.ModelAdmin):
+    list_display = ('is_active', 'min_supported_version', 'latest_version')
+
+    def has_add_permission(self, request):
+        return not AppUpdateSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
 @admin.register(Referral)
 class ReferralAdmin(admin.ModelAdmin):
     list_display = ('referrer', 'referee', 'status', 'created_at')

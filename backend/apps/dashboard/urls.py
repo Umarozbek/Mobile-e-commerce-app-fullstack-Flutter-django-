@@ -42,6 +42,7 @@ from .users import (
     OrderBonusTierListView, OrderBonusTierCreateView, OrderBonusTierUpdateView, OrderBonusTierDeleteView,
     OrderBonusHistoryListView,
     telegram_settings_view, telegram_test_action, telegram_toggle_buttons_action, push_compose_view,
+    app_update_settings_view,
 )
 from .main import (
     dashboard,
@@ -328,6 +329,9 @@ urlpatterns = [
 
     # Push xabarnoma yozish (broadcast)
     path('settings/push/compose/', login_required(push_compose_view), name='push-compose'),
+
+    # Ilova yangilanish bildirishnomasi sozlamalari
+    path('settings/app-update/', login_required(app_update_settings_view), name='app-update-settings'),
 
     path('users/delete/<int:pk>/', delete_user, name='delete-user'),
     path('dashboard/delete/<int:pk>/', delete_order_dash, name='delete_dashboard'),

@@ -25,7 +25,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.authentication import JWTAuthentication
-from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.tokens import RefreshToken, TokenError
 
 from .base import CustomerFilterService, CustomerListService
 from .models import (
@@ -58,8 +58,8 @@ from .serializers import (
     ViewedNewsSerializer,
     TokenToJWTSerializer
 )
-from .utils import generate_otp
-from ..merchant.models import Referral, ReferralSettings
+from .utils import generate_otp, is_version_lower
+from ..merchant.models import Referral, ReferralSettings, AppUpdateSettings
 
 User = get_user_model()
 
@@ -304,6 +304,49 @@ class NotificationListAPIView(ListAPIView):
     def get_queryset(self):
         notification_type = self.request.query_params.get("type")
         return CustomerListService.get_notifications_list(notification_type)
+
+
+@extend_schema(tags=["Customer"])
+class AppUpdateCheckAPIView(APIView):
+    """
+    Mobil ilova versiyasini tekshirish (majburiy/ixtiyoriy yangilanish).
+
+    GET /api/customer/app-update/?version=<joriy_versiya>&platform=android|ios
+
+    Barcha versiya solishtirish logikasi backendda - ilova faqat qaytgan
+    flag'larga qarab UI ko'rsatadi (bir yagona haqiqat manbai).
+    """
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        settings_obj = AppUpdateSettings.get_solo()
+
+        empty_response = {
+            "update_required": False,
+            "update_available": False,
+            "title": "",
+            "message": "",
+            "store_url": "",
+        }
+
+        if not settings_obj.is_active:
+            return Response(empty_response)
+
+        current_version = request.query_params.get("version", "")
+        platform = (request.query_params.get("platform") or "").lower()
+
+        update_required = is_version_lower(current_version, settings_obj.min_supported_version)
+        update_available = (not update_required) and is_version_lower(current_version, settings_obj.latest_version)
+
+        store_url = settings_obj.ios_store_url if platform == "ios" else settings_obj.android_store_url
+
+        return Response({
+            "update_required": update_required,
+            "update_available": update_available,
+            "title": settings_obj.title,
+            "message": settings_obj.message,
+            "store_url": store_url,
+        })
 
 
 @extend_schema(tags=["Customer"])
@@ -719,6 +762,42 @@ def send_otp_sms(phone_number, otp):
             exc_info=True
         )
         return False
+
+@extend_schema(tags=["Authentication"])
+class RefreshTokenView(APIView):
+    """
+    Mobil ilova (Flutter) shu endpoint'ni chaqiradi har safar access token
+    401 qaytarganda. Flutter refresh tokenni so'rov BODY'sida EMAS,
+    Authorization header'da ("Bearer <refresh_token>") yuboradi - shu
+    sababli standart SimpleJWT TokenRefreshView (body'dan o'qiydi) ishlamaydi,
+    shuning uchun maxsus view kerak. Javob shakli ham Flutter kutgan aniq
+    nomlar bilan: access_token/refresh_token (SimpleJWT default'i
+    access/refresh emas).
+    """
+    permission_classes = [AllowAny]
+    authentication_classes = []
+
+    def post(self, request):
+        auth_header = request.headers.get("Authorization", "")
+        refresh_str = auth_header.split(" ", 1)[1] if auth_header.lower().startswith("bearer ") else None
+        if not refresh_str:
+            return Response({"detail": "Refresh token required"}, status=400)
+
+        try:
+            refresh = RefreshToken(refresh_str)
+        except TokenError as e:
+            return Response({"detail": str(e)}, status=401)
+
+        access_token = str(refresh.access_token)
+        if getattr(settings, "SIMPLE_JWT", {}).get("ROTATE_REFRESH_TOKENS", False):
+            refresh.set_jti()
+            refresh.set_exp()
+            refresh_token = str(refresh)
+        else:
+            refresh_token = refresh_str
+
+        return Response({"access_token": access_token, "refresh_token": refresh_token})
+
 
 class TokenToJWTView(APIView):
     permission_classes = [AllowAny]

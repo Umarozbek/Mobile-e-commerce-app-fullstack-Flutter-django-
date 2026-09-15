@@ -11,6 +11,7 @@ urlpatterns = [
     path("news/list/", views.NewsListAPIView.as_view()),
     path("news/<int:pk>/retrieve/", views.NewsRetrieveUpdateDelete.as_view()),
     path("notifications/list/", views.NotificationListAPIView.as_view(), name="notifications-list"),
+    path("app-update/", views.AppUpdateCheckAPIView.as_view(), name="app-update-check"),
     path("device-token/register/", views.DeviceTokenRegisterAPIView.as_view(), name="device-token-register"),
     path("device-token/", views.DeviceTokenRemoveAPIView.as_view(), name="device-token-remove"),
     path("viewed/create/", views.ViewedNewsCreateAPIView.as_view()),
@@ -28,6 +29,8 @@ urlpatterns = [
     path("login/", views.LoginView.as_view(), name="login"),
 
     path("auth/token-to-jwt/", views.TokenToJWTView.as_view(), name="token-to-jwt"),
+    # Trailing slash yo'q - Flutter shu aniq path'ni chaqiradi (api_consts.dart)
+    path("auth/refresh-token", views.RefreshTokenView.as_view(), name="refresh-token"),
 
     path("set-password/", views.SetPasswordView.as_view()),
     path("profile/edit/", views.ProfileEditAPIView.as_view()),

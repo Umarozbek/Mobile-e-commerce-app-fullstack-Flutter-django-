@@ -11,7 +11,7 @@ from apps.product.models import (
 )
 from django.core.validators import MinValueValidator
 from apps.customer.models import News, Banner
-from apps.merchant.models import Information, Service, Bonus, SocialMedia, BankCardModel, OrderBonusTier, TelegramSettings
+from apps.merchant.models import Information, Service, Bonus, SocialMedia, BankCardModel, OrderBonusTier, TelegramSettings, AppUpdateSettings
 from django.utils import timezone
 from ckeditor.widgets import CKEditorWidget
 
@@ -2087,6 +2087,33 @@ class TelegramSettingsForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+class AppUpdateSettingsForm(forms.ModelForm):
+    class Meta:
+        model = AppUpdateSettings
+        fields = [
+            'is_active', 'min_supported_version', 'latest_version',
+            'title', 'message', 'android_store_url', 'ios_store_url',
+        ]
+        widgets = {
+            'is_active': forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+            'min_supported_version': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1.2.0'}),
+            'latest_version': forms.TextInput(attrs={'class': 'form-control', 'placeholder': '1.3.0'}),
+            'title': forms.TextInput(attrs={'class': 'form-control'}),
+            'message': forms.Textarea(attrs={'class': 'form-control', 'rows': 4}),
+            'android_store_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://play.google.com/store/apps/details?id=...'}),
+            'ios_store_url': forms.URLInput(attrs={'class': 'form-control', 'placeholder': 'https://apps.apple.com/app/id...'}),
+        }
+        labels = {
+            'is_active': "Faol",
+            'min_supported_version': "Minimal qo'llab-quvvatlanadigan versiya",
+            'latest_version': "Eng so'nggi versiya",
+            'title': "Sarlavha",
+            'message': "Xabar matni",
+            'android_store_url': "Android Store havolasi",
+            'ios_store_url': "iOS Store havolasi",
+        }
 
 
 class PushComposeForm(forms.Form):
