@@ -61,3 +61,5 @@ uritemplate==4.2.0
 urllib3==2.6.3
 whitenoise==6.11.0
 yarl==1.22.0
+cloudinary==1.46.2
+django-cloudinary-storage==0.3.0

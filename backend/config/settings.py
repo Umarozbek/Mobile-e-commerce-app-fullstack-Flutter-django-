@@ -65,6 +65,14 @@ INSTALLED_APPS = [
     "drf_spectacular",
 ] + LOCAL_APPS
 
+# Cloudinary faqat CLOUDINARY_URL o'rnatilgan bo'lsa yoqiladi - aks holda
+# mediafayllar lokal diskka yoziladi (local dev uchun). Render kabi
+# ephemeral fayl tizimida CLOUDINARY_URL SHART, aks holda har deploy'da
+# yuklangan rasmlar o'chib ketadi.
+if os.getenv("CLOUDINARY_URL"):
+    INSTALLED_APPS = ["cloudinary_storage", "cloudinary"] + INSTALLED_APPS
+    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+
 # ============================================
 # MIDDLEWARE
 # ============================================
