@@ -69,9 +69,23 @@ INSTALLED_APPS = [
 # mediafayllar lokal diskka yoziladi (local dev uchun). Render kabi
 # ephemeral fayl tizimida CLOUDINARY_URL SHART, aks holda har deploy'da
 # yuklangan rasmlar o'chib ketadi.
+#
+# E'TIBOR: "cloudinary_storage" ilovasi ATAYLAB INSTALLED_APPS'ga
+# QO'SHILMAYDI - u o'zining collectstatic buyrug'ini ro'yxatdan
+# o'tkazadi va bu loyihada mavjud bo'lmagan STATICFILES_STORAGE
+# sozlamasiga tayanadi (build'ni qulatib qo'ygan edi). Faqat Storage
+# klassi kerak, app-darajasidagi buyruq override emas.
+#
+# E'TIBOR 2: eski DEFAULT_FILE_STORAGE emas, yangi STORAGES dict
+# ishlatiladi - Django 4.2+ da DEFAULT_FILE_STORAGE aslida e'tiborga
+# olinmaydi (STORAGES ochiq belgilanmagan bo'lsa ham Django o'zining
+# implicit default'ini ishlatadi, eski setting'ni yutib yuboradi).
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage"},
+}
 if os.getenv("CLOUDINARY_URL"):
-    INSTALLED_APPS = ["cloudinary_storage", "cloudinary"] + INSTALLED_APPS
-    DEFAULT_FILE_STORAGE = "cloudinary_storage.storage.MediaCloudinaryStorage"
+    STORAGES["default"]["BACKEND"] = "cloudinary_storage.storage.MediaCloudinaryStorage"
 
 # ============================================
 # MIDDLEWARE
