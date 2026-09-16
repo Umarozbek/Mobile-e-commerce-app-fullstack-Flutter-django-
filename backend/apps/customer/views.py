@@ -553,7 +553,12 @@ class RegisterView(APIView):
                         pass  # Код неверный - игнорируем
 
             # Отправка СМС
-            send_otp_sms(phone_number, otp_code)
+            sms_sent, sms_error = send_otp_sms(phone_number, otp_code)
+            if not sms_sent:
+                return Response({
+                    "message": "Failed to send OTP SMS",
+                    "details": sms_error,
+                }, status=status.HTTP_408_REQUEST_TIMEOUT)
 
             return Response({
                 "message": "OTP code sent to your phone",
@@ -732,6 +737,9 @@ class B2BApplicationCreateAPIView(CreateAPIView):
 logger = logging.getLogger(__name__)
 
 def send_otp_sms(phone_number, otp):
+    """(success: bool, error_detail: str|None) qaytaradi - chaqiruvchi
+    tomonda xatoni yutib yubormaslik (va client'ga soxta "yuborildi"
+    javobini bermaslik) uchun."""
     try:
         url = f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Messages.json"
 
@@ -749,19 +757,23 @@ def send_otp_sms(phone_number, otp):
 
         if response.status_code in (200, 201):
             logger.info(f"SMS sent to {phone_number}")
-            return True
+            return True, None
         else:
             logger.error(
                 f"Twilio error | status: {response.status_code} | response: {response.text}"
             )
-            return False
+            try:
+                error_detail = response.json().get("message", response.text)
+            except ValueError:
+                error_detail = response.text
+            return False, error_detail
 
     except Exception as e:
         logger.error(
             f"Failed to send SMS to {phone_number}: {str(e)}",
             exc_info=True
         )
-        return False
+        return False, str(e)
 
 @extend_schema(tags=["Authentication"])
 class RefreshTokenView(APIView):
