@@ -323,6 +323,31 @@ TWILIO_PHONE_NUMBER = os.getenv("TWILIO_PHONE_NUMBER")
 # os.getenv() orqali o'qiydi (lazy, birinchi push yuborilganda).
 
 # ============================================
+# LOGGING
+# ============================================
+# DEBUG=False bo'lganda Django'ning standart logging sozlamasi 500
+# xatoliklarini HECH QAYERGA chiqarmaydi (faqat admin email, u ham
+# sozlanmagan) - Render Logs tab'da hech qanday traceback ko'rinmasdi.
+# Endi django.request xatoliklari to'liq traceback bilan console'ga
+# (stdout/stderr - Render buni Logs tab'da ko'rsatadi) yoziladi.
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "handlers": {
+        "console": {
+            "class": "logging.StreamHandler",
+        },
+    },
+    "loggers": {
+        "django.request": {
+            "handlers": ["console"],
+            "level": "ERROR",
+            "propagate": False,
+        },
+    },
+}
+
+# ============================================
 # DEFAULT SETTINGS
 # ============================================
 
