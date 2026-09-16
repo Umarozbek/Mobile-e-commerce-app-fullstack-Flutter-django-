@@ -1,0 +1,472 @@
+{
+  "categories": [
+    {
+      "old_pk": 1,
+      "main_type": "f",
+      "name": "Mevalar",
+      "image": "category/14_8.png",
+      "desc": "",
+      "active": true,
+      "is_top": false
+    },
+    {
+      "old_pk": 2,
+      "main_type": "f",
+      "name": "Sabzavotlar",
+      "image": "category/SABZAVOTLAR.png",
+      "desc": "",
+      "active": true,
+      "is_top": false
+    },
+    {
+      "old_pk": 3,
+      "main_type": "f",
+      "name": "Sut mahsulotlari",
+      "image": "category/2_39.png",
+      "desc": "",
+      "active": true,
+      "is_top": false
+    },
+    {
+      "old_pk": 4,
+      "main_type": "f",
+      "name": "Non va qandolat",
+      "image": "category/basmati_guruch.jpg",
+      "desc": "",
+      "active": true,
+      "is_top": true
+    },
+    {
+      "old_pk": 5,
+      "main_type": "f",
+      "name": "Go'sht mahsulotlari",
+      "image": "category/qoy_kategoriya.png",
+      "desc": "",
+      "active": true,
+      "is_top": true
+    },
+    {
+      "old_pk": 6,
+      "main_type": "f",
+      "name": "Ichimliklar",
+      "image": "category/5_24.png",
+      "desc": "",
+      "active": true,
+      "is_top": true
+    },
+    {
+      "old_pk": 7,
+      "main_type": "f",
+      "name": "Shirinliklar",
+      "image": "category/goshtli_non.png",
+      "desc": "",
+      "active": true,
+      "is_top": true
+    }
+  ],
+  "product_items": [
+    {
+      "old_pk": 1,
+      "name": null,
+      "desc": "Mango - yangi mahsulot",
+      "product_type": "785a66f5-0d36-4696-bb26-39d2ee18b686",
+      "old_price": "6000",
+      "new_price": "5000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 10.0,
+      "measure": 0,
+      "available_quantity": 28,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 2,
+      "name": null,
+      "desc": "Olma - yangi mahsulot",
+      "product_type": "5155986a-e7d2-41cf-90c1-7b7687bbf9b8",
+      "old_price": "3000",
+      "new_price": "2000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 6,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 3,
+      "name": null,
+      "desc": "Banan - yangi mahsulot",
+      "product_type": "aa18f36c-ecd7-4c9a-9d9e-ed66be004ba3",
+      "old_price": "4500",
+      "new_price": "3500",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 70,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 4,
+      "name": null,
+      "desc": "Bodring - yangi mahsulot",
+      "product_type": "a33339d8-302d-4519-a188-ce4af6e72bbe",
+      "old_price": "2500",
+      "new_price": "1500",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 62,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 5,
+      "name": null,
+      "desc": "Pomidor - yangi mahsulot",
+      "product_type": "636074f2-e4c3-4a75-9da9-4c4c76e26e47",
+      "old_price": "3000",
+      "new_price": "2000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 57,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 6,
+      "name": null,
+      "desc": "Kartoshka - yangi mahsulot",
+      "product_type": "6803c8fd-ef80-4c69-9623-5c44a587bfac",
+      "old_price": "2200",
+      "new_price": "1200",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 35,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 7,
+      "name": null,
+      "desc": "Sut - yangi mahsulot",
+      "product_type": "faa49654-4df2-434b-87d5-b9a12973b639",
+      "old_price": "3500",
+      "new_price": "2500",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 26,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 8,
+      "name": null,
+      "desc": "Pishloq - yangi mahsulot",
+      "product_type": "30a955c2-1695-408e-9773-6d4acff5ce5b",
+      "old_price": "13000",
+      "new_price": "12000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 139,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 9,
+      "name": null,
+      "desc": "Non - yangi mahsulot",
+      "product_type": "ab43b380-a144-435e-bb68-df631cf12196",
+      "old_price": "4000",
+      "new_price": "3000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 22,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 10,
+      "name": null,
+      "desc": "Pechenye - yangi mahsulot",
+      "product_type": "60ffebcd-082c-48c1-a820-f0a6f04490aa",
+      "old_price": "16000",
+      "new_price": "15000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 108,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 11,
+      "name": null,
+      "desc": "Tovuq go'shti - yangi mahsulot",
+      "product_type": "dd6075c8-8675-4e94-a0c7-e34723e9a17b",
+      "old_price": "36000",
+      "new_price": "35000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 8,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 12,
+      "name": null,
+      "desc": "Mol go'shti - yangi mahsulot",
+      "product_type": "08e631ce-25a3-4abc-bb0f-4545264601b7",
+      "old_price": "86000",
+      "new_price": "85000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 7,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 13,
+      "name": null,
+      "desc": "Suv - yangi mahsulot",
+      "product_type": "50abf4ea-9085-4413-8476-ea76c000edab",
+      "old_price": "2000",
+      "new_price": "1000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 23,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 14,
+      "name": null,
+      "desc": "Cola - yangi mahsulot",
+      "product_type": "1912e007-d57e-48ba-a83b-6ac377130621",
+      "old_price": "5000",
+      "new_price": "4000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 55,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    },
+    {
+      "old_pk": 15,
+      "name": null,
+      "desc": "Shokolad - yangi mahsulot",
+      "product_type": "29d3cd1e-3263-49f6-bab2-943675371fe8",
+      "old_price": "19000",
+      "new_price": "18000",
+      "b2b_price": "0",
+      "min_wholesale_quantity": 1,
+      "weight": 1.0,
+      "measure": 0,
+      "available_quantity": 59,
+      "bonus": 0,
+      "discount_price": 0,
+      "main": true,
+      "active": true
+    }
+  ],
+  "goods": [
+    {
+      "old_pk": 1,
+      "name": "Mango",
+      "product_old_pk": 1,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 1
+    },
+    {
+      "old_pk": 2,
+      "name": "Olma",
+      "product_old_pk": 2,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 1
+    },
+    {
+      "old_pk": 3,
+      "name": "Banan",
+      "product_old_pk": 3,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 1
+    },
+    {
+      "old_pk": 4,
+      "name": "Bodring",
+      "product_old_pk": 4,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 2
+    },
+    {
+      "old_pk": 5,
+      "name": "Pomidor",
+      "product_old_pk": 5,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 2
+    },
+    {
+      "old_pk": 6,
+      "name": "Kartoshka",
+      "product_old_pk": 6,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 2
+    },
+    {
+      "old_pk": 7,
+      "name": "Sut",
+      "product_old_pk": 7,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 3
+    },
+    {
+      "old_pk": 8,
+      "name": "Pishloq",
+      "product_old_pk": 8,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 3
+    },
+    {
+      "old_pk": 9,
+      "name": "Non",
+      "product_old_pk": 9,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 4
+    },
+    {
+      "old_pk": 10,
+      "name": "Pechenye",
+      "product_old_pk": 10,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 4
+    },
+    {
+      "old_pk": 11,
+      "name": "Tovuq go'shti",
+      "product_old_pk": 11,
+      "ingredients": null,
+      "expire_date": "2026-09-09",
+      "category_old_pk": 5
+    },
+    {
+      "old_pk": 12,
+      "name": "Mol go'shti",
+      "product_old_pk": 12,
+      "ingredients": null,
+      "expire_date": null,
+      "category_old_pk": 5
+    },
+    {
+      "old_pk": 13,
+      "name": "Suv",
+      "product_old_pk": 13,
+      "ingredients": null,
+      "expire_date": null,
+      "category_old_pk": 6
+    },
+    {
+      "old_pk": 14,
+      "name": "Cola",
+      "product_old_pk": 14,
+      "ingredients": null,
+      "expire_date": null,
+      "category_old_pk": 6
+    },
+    {
+      "old_pk": 15,
+      "name": "Shokolad",
+      "product_old_pk": 15,
+      "ingredients": null,
+      "expire_date": null,
+      "category_old_pk": 7
+    }
+  ],
+  "images": [
+    {
+      "old_pk": 1,
+      "name": "edit_Shokolad",
+      "product_old_pk": 15,
+      "image": "images/16.png"
+    },
+    {
+      "old_pk": 2,
+      "name": "edit_Cola",
+      "product_old_pk": 14,
+      "image": "images/20.png"
+    },
+    {
+      "old_pk": 3,
+      "name": "edit_Suv",
+      "product_old_pk": 13,
+      "image": "images/1_2.png"
+    },
+    {
+      "old_pk": 4,
+      "name": "edit_Mol go'shti",
+      "product_old_pk": 12,
+      "image": "images/15.png"
+    }
+  ]
+}
