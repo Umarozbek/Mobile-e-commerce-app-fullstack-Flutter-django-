@@ -211,11 +211,11 @@ class GoodEditForm(forms.ModelForm):
     )
     old_price = forms.DecimalField(
         decimal_places=0, max_digits=10,
-        widget=forms.NumberInput(attrs={"class": "sherah-wc__form-input", "placeholder": "Eski narx"})
+        widget=forms.NumberInput(attrs={"class": "sherah-wc__form-input", "placeholder": "Narx"})
     )
     new_price = forms.DecimalField(
         decimal_places=0, max_digits=10,
-        widget=forms.NumberInput(attrs={"class": "sherah-wc__form-input", "placeholder": "Yangi narx"})
+        widget=forms.NumberInput(attrs={"class": "sherah-wc__form-input", "placeholder": "Eski narx"})
     )
     b2b_price = forms.DecimalField(
         required=False, decimal_places=0, max_digits=10,
