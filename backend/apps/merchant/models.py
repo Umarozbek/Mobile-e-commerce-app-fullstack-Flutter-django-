@@ -179,18 +179,23 @@ class Order(models.Model):
             total += self.delivery_fee.delivery_fee
 
         # Bazadagi total_amountni yangilaymiz
+        merchandise_subtotal = total - (self.delivery_fee.delivery_fee if self.delivery_fee else Decimal(0))
         if self.total_amount != total:
             self.total_amount = total
             Order.objects.filter(pk=self.pk).update(total_amount=total)
 
         # 4️⃣ Bonus yaratish - buyurtma "yakunlangan" statuslardan biriga birinchi
-        # marta o'tganda (approved / check_pending / sent). Bu yerda - total_amount
+        # marta o'tganda (approved / check_pending / Sent). Bu yerda - total_amount
         # allaqachon yuqorida (2️⃣) yangilangandan KEYIN - chunki Order post_save
         # signali (super().save() ichida, hali 2️⃣ ishlamasdan oldin) hali eski/nol
         # total_amount bilan chaqiriladi va noto'g'ri natija berardi.
-        COMPLETION_STATUSES = ("approved", "check_pending", "sent")
+        #
+        # E'TIBOR: "sent" pastda "Sent" ga tuzatildi - STATUS_CHOICES'dagi
+        # haqiqiy qiymat katta harf bilan "Sent", pastki harf bilan hech qachon
+        # mos kelmasdi (bonus "Sent" statusiga o'tganda umuman berilmasdi).
+        COMPLETION_STATUSES = ("approved", "check_pending", "Sent")
         if self.status in COMPLETION_STATUSES and old_status not in COMPLETION_STATUSES:
-            self.create_loyalty_pending_bonus()
+            self.create_loyalty_pending_bonus(merchandise_subtotal)
 
     def calculate_shipping_fee(self):
         """Jami paket og'irligi asosida yetkazib berish narxini hisoblaydi.
@@ -230,13 +235,13 @@ class Order(models.Model):
     def get_status_display_value(self):
         return dict(self.STATUS_CHOICES).get(self.status, "Noma'lum")
 
-    def create_loyalty_pending_bonus(self):
-        """Buyurtma yakunlanganda (status='approved'/'check_pending' - signals.py
-        orqali, yoki 'sent' - pastdagi save() orqali) chaqiriladi.
+    def create_loyalty_pending_bonus(self, merchandise_subtotal=None):
+        """Buyurtma yakunlanganda (status='approved'/'check_pending'/'Sent')
+        chaqiriladi.
 
         OneToOneField(order) + shu yerdagi mavjudlik tekshiruvi - buyurtma
         necha marta saqlansa ham, va qaysi "yakunlangan" status birinchi
-        bo'lib kelsa ham (approved/check_pending/sent), bonus FAQAT BIR
+        bo'lib kelsa ham (approved/check_pending/Sent), bonus FAQAT BIR
         MARTA berilishini ta'minlaydi: qaysi status birinchi kelsa, shu
         LoyaltyPendingBonus yozuvini yaratadi, qolganlari mavjudlik
         tekshiruvida to'xtaydi.
@@ -247,10 +252,17 @@ class Order(models.Model):
         (bitta joyda - takror hisoblanmasligi uchun). Hech qanday pog'ona
         mos kelmasa (bo'sh joy yoki sozlama yo'q) - bonus berilmaydi,
         hech narsa o'ylab topilmaydi.
+
+        E'TIBOR: pog'ona MAHSULOT SUMMASIGA (yetkazib berish narxisiz)
+        nisbatan tekshiriladi, self.total_amount (yetkazib berish narxi
+        qo'shilgan) ga EMAS. Aks holda og'ir/ko'p sonli buyurtmalarda
+        yetkazib berish narxi umumiy summani pog'ona chegarasidan
+        chiqarib yuborib, mijoz mahsulot summasi bo'yicha haqli bo'lgan
+        bonusni olmay qolar edi.
         """
         if LoyaltyPendingBonus.objects.filter(order=self).exists():
             return
-        total = self.total_amount
+        total = merchandise_subtotal if merchandise_subtotal is not None else self.total_amount
         if total <= 0:
             return
 
