@@ -13,10 +13,22 @@ from apps.product.models import SoldProduct
 from django.core.exceptions import ObjectDoesNotExist
 from decimal import Decimal
 
-# --- CONFIG ---
-BOT_TOKEN = config("BOT_TOKEN", default="")
-CHAT_ID = config("CHAT_ID", default="")
-bot = telebot.TeleBot(BOT_TOKEN or "0", parse_mode="HTML", validate_token=False)
+# E'TIBOR: bu faylda ILGARI o'zining ALOHIDA TeleBot obyekti ("bot") va
+# alohida yes|/no|/sent| handler'lari bo'lgan - order_bot.py dagi tbot bilan
+# BUTUNLAY BOG'LIQ EMAS edi. Telegram bir vaqtning o'zida faqat BITTA
+# webhook URL'ga so'rov yuboradi (yoki bot.py dagi /dashboard/bot/, yoki
+# order_bot.py dagi /bot/index/) - qaysi biri ro'yxatdan o'tgan bo'lsa,
+# FAQAT o'sha fayl handler'lari haqiqiy tugma bosishlarni qabul qilardi,
+# ikkinchisi esa hech qachon ishlamaydigan "o'lik" kod bo'lib qolardi.
+# Bu aynan "tugmalarni boshqara olmayapman" xatosining sababi edi -
+# ehtimol webhook shu faylga (yoki aksincha) ko'rsatilgan bo'lib, aynan
+# o'sha fayldagi eskirroq/xatolarga to'la handler ishlagan.
+#
+# Yechim: BU FAYL ENDI O'ZINING TeleBot OBYEKTINI SAQLAMAYDI - qaysi URL
+# chaqirilsa ham, ikkalasi ham order_bot.py dagi BITTA tbot orqali qayta
+# ishlanadi, shu bilan qaysi webhook ro'yxatdan o'tganidan qat'iy nazar
+# xatti-harakat bir xil va to'g'ri bo'ladi.
+from apps.dashboard.order_bot import tbot as bot
 
 
 # --- YORDAMCHI FUNKSIYA: MATNNI FORMATLASH ---
@@ -65,62 +77,47 @@ def index(request):
     return HttpResponse("Bot is running...")
 
 
-# --- CALLBACK: HA (TASDIQLASH) ---
-@bot.callback_query_handler(func=lambda call: call.data.startswith("yes|"))
-def handle_yes(call):
-    order_id = int(call.data.split('|')[-1])
-    try:
-        order = Order.objects.get(id=order_id)
-        order.status = "approved"
-        order.save()
-
-        text = get_order_formatted_text(order, "✅ TASDIQLANDI")
-        text += "\n\n⁉️ <u>Buyurtma yuborildimi?</u>"
-
-        markup = types.InlineKeyboardMarkup()
-        markup.add(types.InlineKeyboardButton(text="🚚 Yuborildi (Sent)", callback_data=f"sent|{order.id}"))
-
-        # Xabarni yangilash
-        if call.message.photo:
-            bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                     caption=text, reply_markup=markup)
-        else:
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=text, reply_markup=markup)
-
-    except Exception as e:
-        bot.answer_callback_query(call.id, text=f"Xato: {e}")
-
-
-# --- CALLBACK: YO'Q (RAD ETISH) ---
-@bot.callback_query_handler(func=lambda call: call.data.startswith("no|"))
-def handle_no(call):
-    order_id = int(call.data.split('|')[-1])
-    try:
-        order = Order.objects.get(id=order_id)
-        order.status = "cancelled"
-        order.save()
-
-        text = get_order_formatted_text(order, "❌ BEKOR QILINDI")
-
-        if call.message.photo:
-            bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                     caption=text, reply_markup=None)
-        else:
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=text, reply_markup=None)
-    except Exception as e:
-        bot.answer_callback_query(call.id, text=f"Xato: {e}")
+# E'TIBOR: "yes|"/"no|" handler'lari BU YERDAN OLIB TASHLANDI - order_bot.py
+# dagi handle_order_decision() ENDI YAGONA MANBA (bot ikkalasi ham bitta
+# tbot obyekti bo'lgani uchun, shu yerda qayta ro'yxatdan o'tkazish ikki
+# marta ishlov berishga - va ikkinchi answer_callback_query chaqiruvi
+# Telegram xatosiga - olib kelardi). "Qabul qilish"/"Rad etish" mantig'i
+# uchun order_bot.py'ga qarang.
 
 
 # --- CALLBACK: YUBORILDI (SENT) ---
 @bot.callback_query_handler(func=lambda call: call.data.startswith("sent|"))
 def handle_sent(call):
-    order_id = int(call.data.split('|')[-1])
+    from apps.merchant.models import TelegramSettings
+
     try:
+        order_id = int(call.data.split('|')[-1])
+    except (ValueError, IndexError):
+        bot.answer_callback_query(call.id, text="Noto'g'ri callback ma'lumoti.", show_alert=True)
+        return
+
+    settings_obj = TelegramSettings.get_solo()
+    if not settings_obj.is_authorized_admin(call.from_user.id):
+        bot.answer_callback_query(call.id, text="Sizga bu amalni bajarishga ruxsat berilmagan.", show_alert=True)
+        return
+
+    try:
+        order = Order.objects.get(id=order_id)
+    except Order.DoesNotExist:
+        bot.answer_callback_query(call.id, text="Buyurtma topilmadi.", show_alert=True)
+        return
+
+    try:
+        # E'TIBOR: "sent" pastki harf bilan emas - Order.STATUS_CHOICES'dagi
+        # haqiqiy qiymat katta harf bilan "Sent" (avval bu yerda "sent"
+        # yozilgan bo'lib, hech qachon haqiqiy statusga mos kelmasdi va
+        # bonus/statistika logikasi uni "noma'lum" status sifatida ko'rardi).
+        if order.status == "Sent":
+            bot.answer_callback_query(call.id, text="Bu buyurtma allaqachon yuborilgan deb belgilangan.", show_alert=True)
+            return
+
         with transaction.atomic():
-            order = Order.objects.get(id=order_id)
-            order.status = 'sent'
+            order.status = 'Sent'
             order.save()
 
             # Statistika (SoldProduct) qismi
@@ -139,12 +136,21 @@ def handle_sent(call):
 
         text = get_order_formatted_text(order, "🚚 YUBORILDI")
 
-        if call.message.photo:
-            bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                     caption=text, reply_markup=None)
-        else:
-            bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
-                                  text=text, reply_markup=None)
+        try:
+            if call.message.photo:
+                bot.edit_message_caption(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                         caption=text, reply_markup=None)
+            else:
+                bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id,
+                                      text=text, reply_markup=None)
+        except Exception as e:
+            print(f"[WARNING] Xabarni tahrirlab bo'lmadi: {e}")
+
+        bot.answer_callback_query(call.id, text="Buyurtma yuborildi deb belgilandi!")
 
     except Exception as e:
-        bot.answer_callback_query(call.id, text=f"Xato: {e}")
+        print(f"[ERROR] handle_sent xatosi: {e}")
+        try:
+            bot.answer_callback_query(call.id, text="Xatolik yuz berdi, qaytadan urinib ko'ring.", show_alert=True)
+        except Exception:
+            pass

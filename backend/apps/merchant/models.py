@@ -235,6 +235,71 @@ class Order(models.Model):
     def get_status_display_value(self):
         return dict(self.STATUS_CHOICES).get(self.status, "Noma'lum")
 
+    # ---------------- MIJOZGA KO'RSATILADIGAN 3 TA HOLAT ----------------
+    # Ichki STATUS_CHOICES ko'p (in_cart/pending/payment_pending/approved/
+    # cancelled/Sent) qoladi - lekin mijoz (Flutter) faqat 3 ta soddalashtirilgan
+    # holatni ko'rishi kerak. Bu yerda ichki -> tashqi xarita bitta joyda
+    # markazlashtirilgan (Order.save() ichidagi status o'zgarishlari va
+    # Telegram/Admin Panel'dan kelgan o'zgarishlar hammasi shu XARITA orqali
+    # ko'rinadi - alohida joy-joyida takrorlanmaydi).
+    CUSTOMER_STATUS_MAP = {
+        "pending": ("PAYMENT_COMPLETED", "To'lov amalga oshirildi"),
+        "payment_pending": ("PAYMENT_COMPLETED", "To'lov amalga oshirildi"),
+        "approved": ("ORDER_ACCEPTED", "Buyurtma qabul qilindi"),
+        "Sent": ("ORDER_ACCEPTED", "Buyurtma qabul qilindi"),
+        "cancelled": ("ORDER_REJECTED", "Buyurtma qabul qilinmadi"),
+    }
+    # Buyurtma allaqachon "hal qilingan" (admin qaror chiqargan) statuslar -
+    # accept()/reject() shu statuslardan birida bo'lsa endi HECH NARSA
+    # qilmaydi (idempotent - qayta bosilsa ham status/bonus o'zgarmaydi).
+    DECIDED_STATUSES = ("approved", "Sent", "cancelled")
+
+    @property
+    def customer_status(self):
+        return self.CUSTOMER_STATUS_MAP.get(self.status, (None, None))[0]
+
+    @property
+    def customer_status_display(self):
+        return self.CUSTOMER_STATUS_MAP.get(self.status, (None, None))[1]
+
+    def accept(self):
+        """Admin buyurtmani qabul qiladi (Telegram "Qabul qilish" yoki Admin
+        Panel "Accept" - IKKALASI HAM shu metodni chaqirishi kerak, bir xil
+        natija uchun).
+
+        IDEMPOTENT: buyurtma allaqachon hal qilingan bo'lsa (approved/Sent/
+        cancelled) - HECH NARSA qilmaydi, False qaytaradi. Bonus
+        Order.save() -> create_loyalty_pending_bonus() orqali avtomatik
+        beriladi - u LoyaltyPendingBonus.order OneToOneField (DB darajasida
+        UNIQUE) + mavjudlik tekshiruvi bilan allaqachon bir marta berilishini
+        kafolatlaydi.
+
+        Qaytaradi: True - endi qabul qilindi, False - allaqachon hal
+        qilingan edi (o'zgarish yo'q).
+        """
+        if self.status in self.DECIDED_STATUSES:
+            return False
+        with transaction.atomic():
+            self.status = "approved"
+            self.save()
+        return True
+
+    def reject(self):
+        """Admin buyurtmani rad etadi (Telegram "Rad etish" yoki Admin
+        Panel "Reject"). Mavjud "cancelled" statusi ishlatiladi (u
+        allaqachon bonus/refund logikasiga bog'langan) - alohida "rejected"
+        ichki status QO'SHILMAYDI.
+
+        IDEMPOTENT: xuddi accept() kabi - allaqachon hal qilingan bo'lsa
+        hech narsa qilmaydi.
+        """
+        if self.status in self.DECIDED_STATUSES:
+            return False
+        with transaction.atomic():
+            self.status = "cancelled"
+            self.save()
+        return True
+
     def create_loyalty_pending_bonus(self, merchandise_subtotal=None):
         """Buyurtma yakunlanganda (status='approved'/'check_pending'/'Sent')
         chaqiriladi.
@@ -466,6 +531,16 @@ class TelegramSettings(models.Model):
         help_text="Har bir qatorda bitta chat ID (yoki kanal @username)"
     )
     buttons_enabled = models.BooleanField(default=False)
+    admin_user_ids = models.TextField(
+        blank=True, default="",
+        help_text=(
+            "Buyurtma Qabul qilish/Rad etish tugmalarini bosishga ruxsat "
+            "etilgan Telegram foydalanuvchi ID'lari, har biri alohida "
+            "qatorda. Bo'sh qoldirilsa - HAR QANDAY foydalanuvchi bosishi "
+            "mumkin (eski xatti-harakat, moslik uchun) - haqiqiy himoya "
+            "uchun shu maydonni to'ldiring."
+        ),
+    )
 
     def __str__(self) -> str:
         return f"TelegramSettings (buttons_enabled={self.buttons_enabled})"
@@ -477,6 +552,18 @@ class TelegramSettings(models.Model):
 
     def get_chat_id_list(self):
         return [line.strip() for line in (self.chat_ids or "").splitlines() if line.strip()]
+
+    def get_admin_user_id_list(self):
+        return [line.strip() for line in (self.admin_user_ids or "").splitlines() if line.strip()]
+
+    def is_authorized_admin(self, telegram_user_id):
+        """admin_user_ids bo'sh bo'lsa - hamma ruxsat etilgan (eski
+        xatti-harakat bilan moslik). To'ldirilgan bo'lsa - faqat ro'yxatdagi
+        ID'lar."""
+        allowed = self.get_admin_user_id_list()
+        if not allowed:
+            return True
+        return str(telegram_user_id) in allowed
 
 
 class AppUpdateSettings(models.Model):

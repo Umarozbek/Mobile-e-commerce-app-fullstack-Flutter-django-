@@ -2067,15 +2067,20 @@ class TelegramSettingsForm(forms.ModelForm):
 
     class Meta:
         model = TelegramSettings
-        fields = ['bot_token', 'chat_ids']
+        fields = ['bot_token', 'chat_ids', 'admin_user_ids']
         widgets = {
             'chat_ids': forms.Textarea(attrs={
                 'class': 'form-control', 'rows': 5,
                 'placeholder': "Har bir qatorda bitta chat ID\nMasalan:\n-1001234567890\n@mening_kanalim",
             }),
+            'admin_user_ids': forms.Textarea(attrs={
+                'class': 'form-control', 'rows': 5,
+                'placeholder': "Har bir qatorda bitta Telegram user ID\nMasalan:\n123456789\n987654321",
+            }),
         }
         labels = {
             'chat_ids': "Chat ID'lar",
+            'admin_user_ids': "Ruxsat etilgan admin ID'lari",
         }
 
     def save(self, commit=True):

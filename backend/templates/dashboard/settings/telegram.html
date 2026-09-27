@@ -46,6 +46,18 @@
                         {% endfor %}
                     </div>
 
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">{{ form.admin_user_ids.label }}</label>
+                        {{ form.admin_user_ids }}
+                        <div class="form-text">
+                            Faqat shu ID'lardagi foydalanuvchilar Qabul qilish/Rad etish tugmalarini bosa oladi.
+                            Bo'sh qoldirilsa - har qanday foydalanuvchi bosishi mumkin (himoyasiz).
+                        </div>
+                        {% for error in form.admin_user_ids.errors %}
+                        <div class="text-danger small mt-1">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+
                     <button type="submit" class="btn btn-primary rounded-pill px-4">
                         <i class="bi bi-check2 me-1"></i> Saqlash
                     </button>

@@ -23,6 +23,10 @@ class OrderCreateSerializer(serializers.ModelSerializer):
 
 
 class OrderSerializer(serializers.ModelSerializer):
+    # Mijozga ko'rsatiladigan 3 ta soddalashtirilgan holat (Order.CUSTOMER_STATUS_MAP)
+    customer_status = serializers.ReadOnlyField()
+    customer_status_display = serializers.ReadOnlyField()
+
     class Meta:
         model = Order
         fields = "__all__"
@@ -63,6 +67,10 @@ class OrderListSerializer(serializers.ModelSerializer):
     # Status matni (Kutilmoqda, Tasdiqlandi...)
     status_display = serializers.CharField(source='get_status_display_value', read_only=True)
 
+    # Mijozga ko'rsatiladigan 3 ta soddalashtirilgan holat (Order.CUSTOMER_STATUS_MAP)
+    customer_status = serializers.ReadOnlyField()
+    customer_status_display = serializers.ReadOnlyField()
+
     # Buyurtma ichidagi mahsulotlar (4 tildagi ma'lumotlar bilan)
     products_details = serializers.SerializerMethodField()
 
@@ -85,6 +93,8 @@ class OrderListSerializer(serializers.ModelSerializer):
             'order_number',
             'status',
             'status_display',
+            'customer_status',
+            'customer_status_display',
             'customer_name',
             'address',
             'total_amount',
@@ -356,12 +366,15 @@ class OrderDetailSerializer(serializers.ModelSerializer):
     items = serializers.SerializerMethodField()
     customer_name = serializers.ReadOnlyField(source='user.full_name')
     location_address = serializers.ReadOnlyField(source='location.address')
+    # Mijozga ko'rsatiladigan 3 ta soddalashtirilgan holat (Order.CUSTOMER_STATUS_MAP)
+    customer_status = serializers.ReadOnlyField()
+    customer_status_display = serializers.ReadOnlyField()
 
     class Meta:
         model = Order
         # 1. BU YERDAN name_uz, description_uz VA BOSHQA NOTOG'RI FIELDLARNI OLIB TASHLADIK
         fields = [
-            'id', 'order_number', 'status', 'customer_name',
+            'id', 'order_number', 'status', 'customer_status', 'customer_status_display', 'customer_name',
             'location_address', 'total_amount', 'delivery_fee',
             'bonus_amount', 'loyalty_payment', 'bank_card_number', 'bank_card_holder', 'formatted_card_number',
             'comment', 'created_at', 'timeline', 'items'
@@ -432,12 +445,19 @@ class OrderDetailSerializer(serializers.ModelSerializer):
 
     def get_timeline(self, obj):
         is_receipt_uploaded = bool(obj.payment_receipt)
+        # E'TIBOR: "sent" pastki harf bilan emas - Order.STATUS_CHOICES'dagi
+        # haqiqiy qiymat katta harf bilan "Sent". Avval bu yerda "sent"
+        # yozilgan bo'lib, hech qachon haqiqiy statusga mos kelmasdi -
+        # step2_paid/step3_approved "Sent" holatidagi buyurtmalar uchun
+        # noto'g'ri False qaytarardi.
         return {
             "step1_created": True,
             "step1_date": obj.created_at,
-            "step2_paid": is_receipt_uploaded or obj.status in ['approved', 'sent'],
-            "step3_approved": obj.status in ['approved', 'sent'],
-            "current_status": obj.get_status_display_value()
+            "step2_paid": is_receipt_uploaded or obj.status in ['approved', 'Sent'],
+            "step3_approved": obj.status in ['approved', 'Sent'],
+            "current_status": obj.get_status_display_value(),
+            "customer_status": obj.customer_status,
+            "customer_status_display": obj.customer_status_display,
         }
 
 

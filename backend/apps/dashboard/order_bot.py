@@ -169,19 +169,44 @@ def _notify_customer_push(order, status_for_mobile):
 
 @tbot.callback_query_handler(func=lambda call: call.data.startswith(('yes|', 'no|')))
 def handle_order_decision(call):
+    """Qabul qilish/Rad etish tugmalari.
+
+    E'TIBOR: `tbot.answer_callback_query` HAR DOIM chaqirilishi SHART -
+    aks holda Telegram tugmani "yuklanmoqda" holatida cheksiz qoldiradi va
+    admin uchun "tugma ishlamayapti" taassurotini beradi (aynan shu bog'
+    avvalgi implementatsiyadagi asosiy xato edi: xatolik bo'lsa handler
+    darhol to'xtardi va callback HECH QACHON javob olmasdi). Shu sababli
+    butun mantiq try/except bilan o'ralgan va CALLBACK JAVOBI FINALLY'DA
+    EMAS, balki har bir yo'lda ANIQ chaqiriladi.
+    """
     print(f"\n[STEP 7] Handler: Tugma bosildi! Data: {call.data}")
-    action, order_id = call.data.split('|')
+
+    try:
+        action, order_id = call.data.split('|')
+    except (ValueError, AttributeError):
+        tbot.answer_callback_query(call.id, text="Noto'g'ri callback ma'lumoti.", show_alert=True)
+        return
+
+    settings_obj = TelegramSettings.get_solo()
+    if not settings_obj.is_authorized_admin(call.from_user.id):
+        print(f"[SECURITY] Ruxsatsiz urinish: user_id={call.from_user.id}")
+        tbot.answer_callback_query(call.id, text="Sizga bu amalni bajarishga ruxsat berilmagan.", show_alert=True)
+        return
 
     try:
         from apps.merchant.models import Order
-        order = Order.objects.get(id=int(order_id))
+        try:
+            order = Order.objects.get(id=int(order_id))
+        except (Order.DoesNotExist, ValueError):
+            tbot.answer_callback_query(call.id, text="Buyurtma topilmadi.", show_alert=True)
+            return
 
         resolver_name = call.from_user.first_name or call.from_user.username or "Admin"
         if call.from_user.last_name:
             resolver_name += f" {call.from_user.last_name}"
 
         if action == 'yes':
-            order.status = 'approved'
+            changed = order.accept()
             status_msg = "TASDIQLANDI"
             status_for_mobile = "approved"
         else:
@@ -189,12 +214,21 @@ def handle_order_decision(call):
             # mavjud "cancelled" statusi ishlatilmoqda (u allaqachon
             # bonus/refund logikasiga bog'langan). Mobil ilova uchun esa
             # payload'da aynan "rejected" yuboriladi (shartnoma shunday).
-            order.status = 'cancelled'
-            status_msg = "BEKOR QILINDI (RAD ETILDI)"
+            changed = order.reject()
+            status_msg = "BEKOR QILINDI (RAD ETISH)"
             status_for_mobile = "rejected"
 
-        order.save()
-        print(f"[STEP 8] Baza yangilandi: {order.status}")
+        print(f"[STEP 8] Baza yangilandi: {order.status} (o'zgardimi: {changed})")
+
+        if not changed:
+            # IDEMPOTENT: buyurtma allaqachon hal qilingan - qayta
+            # status/bonus o'zgartirilmaydi, faqat joriy holat ko'rsatiladi.
+            tbot.answer_callback_query(
+                call.id,
+                text=f"Bu buyurtma allaqachon hal qilingan: {order.get_status_display_value()}",
+                show_alert=True,
+            )
+            return
 
         new_text = (
             f"📌 <b>Buyurtma holati o'zgardi</b>\n\n"
@@ -202,31 +236,40 @@ def handle_order_decision(call):
             f"Kim hal qildi: <b>{resolver_name}</b>\n\n"
         )
 
-        # Xabarni tahrirlash (Edit)
-        if call.message.photo:
-            # Rasm ostidagi matnni tahrirlaymiz
-            tbot.edit_message_caption(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                caption=new_text + (call.message.caption or ""),
-                reply_markup=None,
-                parse_mode="HTML"
-            )
-        else:
-            # Oddiy matnni tahrirlaymiz
-            tbot.edit_message_text(
-                chat_id=call.message.chat.id,
-                message_id=call.message.message_id,
-                text=new_text + (call.message.text or ""),
-                reply_markup=None,
-                parse_mode="HTML"
-            )
+        try:
+            # Xabarni tahrirlash (Edit)
+            if call.message.photo:
+                tbot.edit_message_caption(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    caption=new_text + (call.message.caption or ""),
+                    reply_markup=None,
+                    parse_mode="HTML"
+                )
+            else:
+                tbot.edit_message_text(
+                    chat_id=call.message.chat.id,
+                    message_id=call.message.message_id,
+                    text=new_text + (call.message.text or ""),
+                    reply_markup=None,
+                    parse_mode="HTML"
+                )
+            print("[STEP 9] Xabar tahrirlandi.")
+        except Exception as e:
+            # Xabarni tahrirlash muvaffaqiyatsiz bo'lsa ham (masalan
+            # Telegram "message not modified" xatosi) - buyurtma statusi
+            # allaqachon saqlangan, shuning uchun callback baribir
+            # MUVAFFAQIYAT sifatida javob olishi kerak.
+            print(f"[WARNING] Xabarni tahrirlab bo'lmadi: {e}")
 
         tbot.answer_callback_query(call.id, text=f"Buyurtma {status_msg}!")
-        print("[STEP 9] Xabar tahrirlandi.")
 
         # Mijozga maqsadli push (broadcast EMAS - faqat shu buyurtma egasiga)
         _notify_customer_push(order, status_for_mobile)
 
     except Exception as e:
         print(f"[ERROR] Handler xatosi: {e}")
+        try:
+            tbot.answer_callback_query(call.id, text="Xatolik yuz berdi, qaytadan urinib ko'ring.", show_alert=True)
+        except Exception:
+            pass

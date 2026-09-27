@@ -245,8 +245,17 @@ def update_order_status(request, pk):
     if request.method == "POST":
         new_status = request.POST.get("status")
         if new_status in dict(order.STATUS_CHOICES):
-            order.status = new_status
-            order.save()
+            # "approved"/"cancelled" - Telegram bot bilan BIR XIL Order.accept()/
+            # reject() metodlari orqali (idempotent, bonus xavfsiz bir marta
+            # beriladi). Boshqa statuslar (masalan payment_pending) uchun
+            # oddiy to'g'ridan-to'g'ri o'zgartirish qoladi.
+            if new_status == "approved":
+                order.accept()
+            elif new_status == "cancelled":
+                order.reject()
+            else:
+                order.status = new_status
+                order.save()
 
     # 1. Qayerdan kelganini aniqlaymiz
     referer = request.META.get('HTTP_REFERER')

@@ -419,8 +419,16 @@ class OrdersView(DetailView):
         new_status = request.POST.get("status")
 
         if new_status in dict(order.STATUS_CHOICES):
-            order.status = new_status
-            order.save()
+            # "approved"/"cancelled" - Telegram bot bilan BIR XIL Order.accept()/
+            # reject() metodlari orqali (idempotent, bonus xavfsiz bir marta
+            # beriladi).
+            if new_status == "approved":
+                order.accept()
+            elif new_status == "cancelled":
+                order.reject()
+            else:
+                order.status = new_status
+                order.save()
 
         return HttpResponseRedirect(
             reverse("orders-list", kwargs={"pk": order.user.id})
