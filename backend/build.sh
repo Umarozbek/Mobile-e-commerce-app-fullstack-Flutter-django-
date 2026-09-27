@@ -24,6 +24,11 @@ if not User.objects.filter(username='admin').exists():
     print('Superuser created: admin')
 "
 
-# MANA SHU QATORLARNI QO'SHING:
-mkdir -p /opt/render/project/src/mediafiles
-chmod -R 777 /opt/render/project/src/mediafiles
+# E'TIBOR: avval bu yerda /opt/render/project/src/mediafiles yaratilardi,
+# lekin Django'ning haqiqiy MEDIA_ROOT'i BUTUNLAY BOSHQA yo'lga (config/
+# ichida, BASE_DIR quirk sababli) tushardi - bu mkdir Django uchun
+# umuman foydasiz edi. Endi MEDIA_ROOT bilan BIR XIL manba (env var)
+# ishlatiladi.
+MEDIA_DIR="${MEDIA_ROOT:-/opt/render/project/src/backend/config/mediafiles}"
+mkdir -p "$MEDIA_DIR"
+chmod -R 777 "$MEDIA_DIR"

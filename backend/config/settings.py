@@ -213,7 +213,10 @@ STATICFILES_DIRS = [os.path.join(BASE_DIR, "../", "static")]
 STATIC_ROOT = os.path.join(BASE_DIR, "../", "staticfiles")
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'mediafiles')
+# Render Disk (persistent volume) ulanganda uning mount path'i shu orqali
+# beriladi - aks holda BASE_DIR/mediafiles ga tushadi (Render'ning
+# ephemeral fayl tizimida bu har deploy'da o'chib ketadi).
+MEDIA_ROOT = os.getenv("MEDIA_ROOT", os.path.join(BASE_DIR, 'mediafiles'))
 
 # ============================================
 # REST FRAMEWORK
