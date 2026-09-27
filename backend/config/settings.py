@@ -138,7 +138,16 @@ TEMPLATES = [
 # DATABASE
 # ============================================
 
-if os.getenv("DB_NAME"):
+if os.getenv("DATABASE_URL"):
+    # Render Postgres'ning bitta birlashtirilgan ulanish satri (masalan
+    # postgresql://user:pass@host:port/dbname) - eng ustuvor manba, chunki
+    # Render buni tayyor beradi va 5 ta alohida DB_* o'zgaruvchini qo'lda
+    # ajratib qo'yish shart emas.
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(os.getenv("DATABASE_URL"), conn_max_age=600)
+    }
+elif os.getenv("DB_NAME"):
     DATABASES = {
         'default': {
             'ENGINE': 'django.db.backends.postgresql',
