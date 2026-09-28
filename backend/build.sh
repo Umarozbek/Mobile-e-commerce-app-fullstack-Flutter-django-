@@ -32,6 +32,3 @@ if not User.objects.filter(username='admin').exists():
 MEDIA_DIR="${MEDIA_ROOT:-/opt/render/project/src/backend/config/mediafiles}"
 mkdir -p "$MEDIA_DIR" 2>/dev/null || true
 chmod -R 777 "$MEDIA_DIR" 2>/dev/null || true
-
-# Demo katalog: 10 kategoriya + 30 mahsulot
-python manage.py seed_demo_catalog
