@@ -30,5 +30,5 @@ if not User.objects.filter(username='admin').exists():
 # umuman foydasiz edi. Endi MEDIA_ROOT bilan BIR XIL manba (env var)
 # ishlatiladi.
 MEDIA_DIR="${MEDIA_ROOT:-/opt/render/project/src/backend/config/mediafiles}"
-mkdir -p "$MEDIA_DIR"
-chmod -R 777 "$MEDIA_DIR"
+mkdir -p "$MEDIA_DIR" 2>/dev/null || true
+chmod -R 777 "$MEDIA_DIR" 2>/dev/null || true
