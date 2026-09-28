@@ -33,13 +33,5 @@ MEDIA_DIR="${MEDIA_ROOT:-/opt/render/project/src/backend/config/mediafiles}"
 mkdir -p "$MEDIA_DIR" 2>/dev/null || true
 chmod -R 777 "$MEDIA_DIR" 2>/dev/null || true
 
-# Demo katalog: 10 kategoriya + 30 mahsulot (faqat bo'sh bo'lsa yaratadi)
-python manage.py shell -c "
-from apps.product.models import Category
-if Category.objects.count() == 0:
-    from django.core.management import call_command
-    call_command('seed_demo_catalog')
-    print('Demo catalog seeded')
-else:
-    print('Catalog already has data, skipping seed')
-"
+# Demo katalog: 10 kategoriya + 30 mahsulot
+python manage.py seed_demo_catalog

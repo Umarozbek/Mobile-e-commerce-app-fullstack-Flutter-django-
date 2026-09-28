@@ -61,21 +61,28 @@ class Command(BaseCommand):
 
     def handle(self, *args, **options):
         created_categories = []
+        skipped_categories = 0
         for name, color in CATEGORIES:
-            cat = Category.objects.create(
-                main_type="f",
+            cat, created = Category.objects.get_or_create(
                 name=name,
-                desc="",
-                active=True,
-                is_top=False,
+                defaults=dict(main_type="f", desc="", active=True, is_top=False),
             )
-            image_bytes = make_placeholder_image(name[:14], color)
-            cat.image.save(f"{name.lower().replace(' ', '_')}.png", ContentFile(image_bytes), save=True)
+            if created:
+                image_bytes = make_placeholder_image(name[:14], color)
+                cat.image.save(f"{name.lower().replace(' ', '_')}.png", ContentFile(image_bytes), save=True)
+            else:
+                skipped_categories += 1
             created_categories.append(cat)
-        self.stdout.write(self.style.SUCCESS(f"Created {len(created_categories)} categories"))
+        new_cats = len(created_categories) - skipped_categories
+        self.stdout.write(self.style.SUCCESS(f"Categories: {new_cats} created, {skipped_categories} already existed"))
 
         created_goods = 0
+        skipped_goods = 0
         for i, product_name in enumerate(PRODUCT_NAMES):
+            if Good.objects.filter(name=product_name).exists():
+                skipped_goods += 1
+                continue
+
             category = created_categories[i % len(created_categories)]
             price = random.randint(5, 100) * 1000
 
@@ -95,7 +102,7 @@ class Command(BaseCommand):
                 main=True,
                 active=True,
             )
-            good = Good.objects.create(
+            Good.objects.create(
                 name=product_name,
                 product=product,
                 ingredients="",
@@ -108,4 +115,4 @@ class Command(BaseCommand):
 
             created_goods += 1
 
-        self.stdout.write(self.style.SUCCESS(f"Created {created_goods} products (goods)"))
+        self.stdout.write(self.style.SUCCESS(f"Products: {created_goods} created, {skipped_goods} already existed"))
